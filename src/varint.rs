@@ -1,12 +1,12 @@
 use crate::{
     Protocol,
-    Encode,
-    Decode
+    NetEncode,
+    NetDecode
 };
 #[cfg(feature = "smol")]
 use crate::{
-    AsyncEncode,
-    AsyncDecode
+    AsyncNetEncode,
+    AsyncNetDecode
 };
 use core::ops::{ BitAnd, BitOr, Shl, Shr, Not };
 use std::io::{ self, Write, Read };
@@ -112,7 +112,7 @@ impl Leb128VarIntType for u128 {
 
 pub struct VarInt<T>(pub T);
 
-impl<T : Leb128VarIntType> Encode<Leb128> for VarInt<T> {
+impl<T : Leb128VarIntType> NetEncode<Leb128> for VarInt<T> {
     type Error = io::Error;
     fn encode<W : Write>(&self, mut writer : W) -> Result<(), Self::Error> {
         let self_segment_bits = T::Raw::from_u8(SEGMENT_BITS);
@@ -131,7 +131,7 @@ impl<T : Leb128VarIntType> Encode<Leb128> for VarInt<T> {
 }
 
 #[cfg(feature = "smol")]
-impl<T : Leb128VarIntType> AsyncEncode<Leb128> for VarInt<T> {
+impl<T : Leb128VarIntType> AsyncNetEncode<Leb128> for VarInt<T> {
     type Error = io::Error;
     async fn async_encode<W : AsyncWrite + Unpin>(&self, mut writer : W) -> Result<(), Self::Error> {
         let self_segment_bits = T::Raw::from_u8(SEGMENT_BITS);
@@ -149,7 +149,7 @@ impl<T : Leb128VarIntType> AsyncEncode<Leb128> for VarInt<T> {
     }
 }
 
-impl<T : Leb128VarIntType> Decode<Leb128> for VarInt<T> {
+impl<T : Leb128VarIntType> NetDecode<Leb128> for VarInt<T> {
     type Error = Leb128DecodeError;
     fn decode<R : Read>(mut reader : R) -> Result<Self, Self::Error> {
         let max_shift = size_of::<T::Raw>() * 8;
@@ -169,7 +169,7 @@ impl<T : Leb128VarIntType> Decode<Leb128> for VarInt<T> {
 }
 
 #[cfg(feature = "smol")]
-impl<T : Leb128VarIntType> AsyncDecode<Leb128> for VarInt<T> {
+impl<T : Leb128VarIntType> AsyncNetDecode<Leb128> for VarInt<T> {
     type Error = Leb128DecodeError;
     async fn async_decode<R : AsyncRead + Unpin>(mut reader : R) -> Result<Self, Self::Error> {
         let max_shift = size_of::<T::Raw>() * 8;

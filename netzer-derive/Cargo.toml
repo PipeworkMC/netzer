@@ -1,0 +1,29 @@
+[package]
+name    = "netzer-derive"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+async = [ ]
+
+[lib]
+proc-macro = true
+
+[lints.rust]
+unused_parens = "allow"
+
+
+[dependencies.proc-macro2]
+version = "1.0"
+
+[dependencies.syn]
+version = "2.0"
+
+[dependencies.quote]
+version = "1.0"
+
+[dependencies.darling]
+version = "0.21"
+
+[dependencies.convert_case]
+version = "0.8"
