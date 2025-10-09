@@ -3,12 +3,14 @@ use std::io::{
     Read
 };
 #[cfg(feature = "smol")]
-use smol::io::{ AsyncWrite, AsyncRead };
+pub use smol::io::{ AsyncWrite, AsyncRead };
 
 
 pub mod numeric;
 pub mod string;
 pub mod varint;
+
+pub mod with;
 
 
 pub trait Protocol { }
@@ -28,7 +30,7 @@ pub trait AsyncNetEncode<P : Protocol> : NetEncode<P> {
 }
 
 
-// TODO: pub use netzer_derive::Encode;
+// TODO: pub use netzer_derive::NetDecode;
 
 pub trait NetDecode<P : Protocol> : Sized {
     type Error;

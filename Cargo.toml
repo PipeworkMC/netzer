@@ -6,7 +6,7 @@ edition = "2024"
 [features]
 default = [ "derive", "smol" ] # TODO: Remove
 derive  = [ "dep:netzer-derive" ]
-smol    = [ "dep:smol", "netzer-derive/async" ]
+smol    = [ "dep:smol" ]
 
 [lints.rust]
 unused_parens = "allow"
