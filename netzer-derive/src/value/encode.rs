@@ -13,7 +13,13 @@ pub(crate) fn derive_netencode_value(opts : &ValueAttrArgs, expr : TokenStream) 
     match ((&opts.protocol, &opts.encode_with,)) {
         (Some(_), Some(_),) => { quote!{ compile_error!("value may not have both `encode_as` and `encode_with`"); } },
 
-        (None, Some(_),) => { todo!("encode_with"); },
+        (None, Some(function),) => { quote!{
+            ::netzer::EncodeWith::<_, _>::encode(
+                &mut #function,
+                #value,
+                &mut netzer_derive_netencode_writer
+            )?;
+        } },
 
         (Some(protocol), None,) => { quote!{
             ::netzer::NetEncode::<#protocol>

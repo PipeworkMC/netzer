@@ -6,8 +6,11 @@ use netzer::{
 
 #[derive(NetEncode)]
 struct Hello {
-    #[netzer(protocol = "BigEndian")]
+    #[netzer(encode_with = encode_a)]
     a : u64
+}
+fn encode_a<W : std::io::Write>(a : &u64, mut w : W) -> Result<(), std::io::Error> {
+    write!(w, "{}", a)
 }
 
 

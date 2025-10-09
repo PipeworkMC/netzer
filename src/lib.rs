@@ -10,7 +10,8 @@ pub mod numeric;
 pub mod string;
 pub mod varint;
 
-pub mod with;
+mod with;
+pub use with::*;
 
 
 pub trait Protocol { }
