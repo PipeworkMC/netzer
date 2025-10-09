@@ -15,7 +15,6 @@ mod util;
 
 
 #[proc_macro_derive(NetEncode, attributes(netzer))]
-#[inline(always)]
 pub fn derive_netencode(item : TokenStream) -> TokenStream {
     let input         = parse_macro_input!(item as DeriveInput);
     let (function_body, error_decl,) = (match (&input.data) {
@@ -51,4 +50,10 @@ pub fn derive_netencode(item : TokenStream) -> TokenStream {
     });
 
     out.into()
+}
+
+
+#[proc_macro_derive(NetDecode, attributes(netzer))]
+pub fn derive_netdecode(item : TokenStream) -> TokenStream {
+    todo!("derive NetDecode")
 }

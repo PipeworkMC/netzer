@@ -9,6 +9,23 @@ use smol::io::{
 };
 
 
+pub mod prelude {
+    pub use crate::{
+        AsyncWrite as _,
+        AsyncRead as _,
+        numeric::{ BigEndian, LittleEndian },
+        string::Utf8,
+        varint::{ VarInt, Leb128 },
+        EncodeWith,
+        DecodeWith,
+        NetEncode,
+        SyncNetEncode as _,
+        NetDecode,
+        SyncNetDecode as _
+    };
+}
+
+
 pub trait AsyncWrite : smol::io::AsyncWrite + Unpin {
     fn write_fmt(&mut self, arguments : Arguments<'_>) -> impl Future<Output = Result<(), io::Error>>;
 }
@@ -34,6 +51,7 @@ pub use with::*;
 pub trait Protocol { }
 
 
+#[cfg(feature = "derive")]
 pub use netzer_derive::NetEncode;
 
 pub trait NetEncode<P : Protocol> {
@@ -65,7 +83,8 @@ impl<P : Protocol, T : NetEncode<P>> SyncNetEncode<P> for T {
 }
 
 
-// TODO: pub use netzer_derive::NetDecode;
+#[cfg(feature = "derive")]
+pub use netzer_derive::NetDecode;
 
 pub trait NetDecode<P : Protocol> : Sized {
     type Error;
