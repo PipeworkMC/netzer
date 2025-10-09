@@ -1,5 +1,5 @@
 use crate::{
-    Protocol,
+    NetFormat,
     NetEncode,
     NetDecode,
     Result, Error
@@ -13,15 +13,15 @@ use smol::io::{
 
 
 #[non_exhaustive]
-pub struct Utf8<Len, LenProtocol : Protocol> {
-    _marker : PhantomData<(Len, LenProtocol,)>
+pub struct Utf8<Len, LenF : NetFormat> {
+    _marker : PhantomData<(Len, LenF,)>
 }
-impl<Len, LenProtocol : Protocol> Protocol for Utf8<Len, LenProtocol> { }
+impl<Len, LenF : NetFormat> NetFormat for Utf8<Len, LenF> { }
 
 
-impl<Len, LenProtocol : Protocol> NetDecode<Utf8<Len, LenProtocol>> for String
+impl<Len, LenF : NetFormat> NetDecode<Utf8<Len, LenF>> for String
 where
-    Len   : NetDecode<LenProtocol> + TryInto<usize>,
+    Len   : NetDecode<LenF> + TryInto<usize>,
     Error : From<<Len as TryInto<usize>>::Error>
 {
     async fn decode<R : AsyncRead + Unpin>(mut reader : R) -> Result<Self> {
@@ -32,20 +32,20 @@ where
         Ok(String::from_utf8(buf)?)
     }
 }
-impl<Len, LenProtocol : Protocol> NetDecode<Utf8<Len, LenProtocol>> for Cow<'_, str>
+impl<Len, LenF : NetFormat> NetDecode<Utf8<Len, LenF>> for Cow<'_, str>
 where
-    Len    : NetDecode<LenProtocol> + TryInto<usize>,
+    Len    : NetDecode<LenF> + TryInto<usize>,
     Error : From<<Len as TryInto<usize>>::Error>
 {
     async fn decode<R : AsyncRead + Unpin>(reader : R) -> Result<Self> {
-        Ok(Cow::Owned(<String as NetDecode<Utf8<Len, LenProtocol>>>::decode(reader).await?))
+        Ok(Cow::Owned(<String as NetDecode<Utf8<Len, LenF>>>::decode(reader).await?))
     }
 }
 
 
-impl<Len, LenProtocol : Protocol> NetEncode<Utf8<Len, LenProtocol>> for str
+impl<Len, LenF : NetFormat> NetEncode<Utf8<Len, LenF>> for str
 where
-    Len   : NetEncode<LenProtocol> + TryFrom<usize>,
+    Len   : NetEncode<LenF> + TryFrom<usize>,
     Error : From<<Len as TryFrom<usize>>::Error>
 {
     async fn encode<W : AsyncWrite + Unpin>(&self, mut writer : W) -> Result {
@@ -56,21 +56,21 @@ where
         Ok(())
     }
 }
-impl<Len, LenProtocol : Protocol> NetEncode<Utf8<Len, LenProtocol>> for Cow<'_, str>
+impl<Len, LenF : NetFormat> NetEncode<Utf8<Len, LenF>> for Cow<'_, str>
 where
-    Len   : NetEncode<LenProtocol> + TryFrom<usize>,
+    Len   : NetEncode<LenF> + TryFrom<usize>,
     Error : From<<Len as TryFrom<usize>>::Error>
 {
     async fn encode<W : AsyncWrite + Unpin>(&self, writer : W) -> Result {
-        <&str as NetEncode<Utf8<Len, LenProtocol>>>::encode(&&**self, writer).await
+        <&str as NetEncode<Utf8<Len, LenF>>>::encode(&&**self, writer).await
     }
 }
-impl<Len, LenProtocol : Protocol> NetEncode<Utf8<Len, LenProtocol>> for String
+impl<Len, LenF : NetFormat> NetEncode<Utf8<Len, LenF>> for String
 where
-    Len   : NetEncode<LenProtocol> + TryFrom<usize>,
+    Len   : NetEncode<LenF> + TryFrom<usize>,
     Error : From<<Len as TryFrom<usize>>::Error>
 {
     async fn encode<W : AsyncWrite + Unpin>(&self, writer : W) -> Result {
-        <&str as NetEncode<Utf8<Len, LenProtocol>>>::encode(&&**self, writer).await
+        <&str as NetEncode<Utf8<Len, LenF>>>::encode(&&**self, writer).await
     }
 }

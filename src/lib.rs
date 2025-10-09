@@ -52,7 +52,7 @@ mod with;
 pub use with::*;
 
 
-pub trait Protocol { }
+pub trait NetFormat { }
 
 
 pub type Error          = Box<dyn StdError>;
@@ -62,26 +62,26 @@ pub type Result<T = ()> = core::result::Result<T, Error>;
 #[cfg(feature = "derive")]
 pub use netzer_derive::NetEncode;
 
-pub trait NetEncode<P : Protocol> {
+pub trait NetEncode<N : NetFormat> {
     fn encode<W : AsyncWrite>(&self, writer : W) -> impl Future<Output = Result>;
 }
-impl<P : Protocol, T : NetEncode<P> + ?Sized> NetEncode<P> for &T {
+impl<N : NetFormat, T : NetEncode<N> + ?Sized> NetEncode<N> for &T {
     #[inline]
     fn encode<W : AsyncWrite>(&self, writer : W) -> impl Future<Output = Result> {
         T::encode(self, writer)
     }
 }
-impl<P : Protocol, T : NetEncode<P> + ?Sized> NetEncode<P> for &mut T {
+impl<N : NetFormat, T : NetEncode<N> + ?Sized> NetEncode<N> for &mut T {
     #[inline]
     fn encode<W : AsyncWrite>(&self, writer : W) -> impl Future<Output = Result> {
         T::encode(self, writer)
     }
 }
 
-pub trait SyncNetEncode<P : Protocol> : NetEncode<P> {
+pub trait SyncNetEncode<N : NetFormat> : NetEncode<N> {
     fn sync_encode<W : Write>(&self, writer : W) -> Result;
 }
-impl<P : Protocol, T : NetEncode<P>> SyncNetEncode<P> for T {
+impl<N : NetFormat, T : NetEncode<N>> SyncNetEncode<N> for T {
     fn sync_encode<W : Write>(&self, writer : W) -> Result {
         smol::block_on(self.encode(AssertAsync::new(writer)))
     }
@@ -91,14 +91,14 @@ impl<P : Protocol, T : NetEncode<P>> SyncNetEncode<P> for T {
 #[cfg(feature = "derive")]
 pub use netzer_derive::NetDecode;
 
-pub trait NetDecode<P : Protocol> : Sized {
+pub trait NetDecode<N : NetFormat> : Sized {
     fn decode<R : AsyncRead>(reader : R) -> impl Future<Output = Result<Self>>;
 }
 
-pub trait SyncNetDecode<P : Protocol> : NetDecode<P> + Sized {
+pub trait SyncNetDecode<N : NetFormat> : NetDecode<N> + Sized {
     fn sync_decode<R : Read>(reader : R) -> Result<Self>;
 }
-impl<P : Protocol, T : NetDecode<P>> SyncNetDecode<P> for T {
+impl<N : NetFormat, T : NetDecode<N>> SyncNetDecode<N> for T {
     fn sync_decode<R : Read>(reader : R) -> Result<Self> {
         smol::block_on(Self::decode(AssertAsync::new(reader)))
     }

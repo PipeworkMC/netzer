@@ -9,11 +9,11 @@ use netzer::{
 
 #[derive(NetEncode)]
 pub struct Hello {
-    #[netzer(encode_with = "encode_a")]
+    #[netzer(format_with = "encode_a")]
     a : u64,
-    #[netzer(protocol = "Leb128", convert = "VarInt<i64>")]
+    #[netzer(format = "Leb128", convert = "VarInt<i64>")]
     b : i32,
-    #[netzer(protocol = "Utf8<VarInt<u32>, Leb128>")]
+    #[netzer(format = "Utf8<VarInt<u32>, Leb128>")]
     c : String
 }
 async fn encode_a<W : netzer::AsyncWrite>(a : &u64, mut w : W) -> Result {
@@ -22,11 +22,11 @@ async fn encode_a<W : netzer::AsyncWrite>(a : &u64, mut w : W) -> Result {
 
 
 #[derive(NetEncode)]
-#[netzer(ordinal, protocol = "BigEndian")]
+#[netzer(ordinal, format = "BigEndian")]
 #[repr(u8)]
 pub enum GameMode {
     Survival(
-        #[netzer(protocol = "BigEndian")]
+        #[netzer(format = "BigEndian")]
         u32
     ) = 0,
     Creative  = 1,
@@ -35,7 +35,7 @@ pub enum GameMode {
 }
 
 #[derive(NetEncode)]
-#[netzer(nominal, protocol = "Utf8<u16, BigEndian>", convert = "&str")]
+#[netzer(nominal, format = "Utf8<u16, BigEndian>", convert = "&str")]
 pub enum DimensionType {
     #[netzer(rename = "minecraft:overworld")]
     Overworld,

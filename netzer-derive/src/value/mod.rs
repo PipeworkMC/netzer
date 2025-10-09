@@ -11,9 +11,9 @@ pub(crate) mod encode;
 #[derive(Debug, FromMeta)]
 pub(crate) struct ValueAttrArgs {
     #[darling(default)]
-    pub(crate) protocol    : Option<SpannedValue<Type>>,
+    pub(crate) format      : Option<SpannedValue<Type>>,
     #[darling(default)]
-    pub(crate) encode_with : Option<SpannedValue<Expr>>,
+    pub(crate) format_with : Option<SpannedValue<Expr>>,
     // #[darling(default)]
     // pub(crate) decode_with : Option<SpannedValue<Expr>>,
     #[darling(default)]

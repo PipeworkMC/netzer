@@ -1,5 +1,5 @@
 use crate::{
-    Protocol,
+    NetFormat,
     NetEncode,
     NetDecode
 };
@@ -21,7 +21,7 @@ pub const CONTINUE_BIT : u8 = 0b10000000;
 
 #[non_exhaustive]
 pub struct Leb128;
-impl Protocol for Leb128 { }
+impl NetFormat for Leb128 { }
 
 pub enum Leb128DecodeError {
     TooLong,

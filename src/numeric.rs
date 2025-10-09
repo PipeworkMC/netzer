@@ -1,5 +1,5 @@
 use crate::{
-    Protocol,
+    NetFormat,
     NetEncode,
     NetDecode,
     Result
@@ -12,11 +12,11 @@ use smol::io::{
 
 #[non_exhaustive]
 pub struct BigEndian;
-impl Protocol for BigEndian { }
+impl NetFormat for BigEndian { }
 
 #[non_exhaustive]
 pub struct LittleEndian;
-impl Protocol for LittleEndian { }
+impl NetFormat for LittleEndian { }
 
 
 macro_rules! impl_netencode_for_numeric {

@@ -35,13 +35,13 @@ pub(crate) fn derive_netencode_value(
 
     } };
 
-    match ((&opts.protocol, &opts.encode_with,)) {
-        (Some(_), Some(_),) => { return quote!{ compile_error!("value may not have both `encode_as` and `encode_with`"); }; },
+    match ((&opts.format, &opts.format_with,)) {
+        (Some(_), Some(_),) => { return quote!{ compile_error!("value may not have both `format` and `format_with`"); }; },
 
         (Some(spanned), None,) => {
-            let protocol = &**spanned;
+            let format = &**spanned;
             quote_spanned!{ spanned.span() =>
-                ::netzer::NetEncode::<#protocol>
+                ::netzer::NetEncode::<#format>
                     ::encode(&#value, &mut netzer_derive_netencode_writer).await?;
             }
         },
@@ -58,7 +58,7 @@ pub(crate) fn derive_netencode_value(
         },
 
         (None, None,) => quote!{
-            ::netzer::NetEncode::<NetzerDeriveNetEncodeProtocol>
+            ::netzer::NetEncode::<NetzerDeriveNetEncodeNetFormats>
                 ::encode(&#value, &mut netzer_derive_netencode_writer).await?;
         }
 

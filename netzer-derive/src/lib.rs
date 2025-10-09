@@ -24,8 +24,8 @@ pub fn derive_netencode(item : TokenStream) -> TokenStream {
 
     let ident = &input.ident;
     quote!{
-        impl<NetzerDeriveNetEncodeProtocol : ::netzer::Protocol>
-            ::netzer::NetEncode<NetzerDeriveNetEncodeProtocol>
+        impl<NetzerDeriveNetEncodeNetFormat : ::netzer::NetFormat>
+            ::netzer::NetEncode<NetzerDeriveNetEncodeNetFormat>
             for #ident
         {
             #[allow(clippy::clone_on_copy, clippy::needless_borrow)]
