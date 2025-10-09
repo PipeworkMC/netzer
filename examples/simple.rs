@@ -34,16 +34,16 @@ pub enum GameMode {
     Spectator = 3
 }
 
-// #[derive(NetEncode)]
-// #[netzer(nominal, protocol = "Utf8<BigEndian>", convert = "&str")]
-// enum DimensionType {
-//     #[netzer(rename = "minecraft:overworld")]
-//     Overworld,
-//     #[netzer(rename = "minecraft:the_nether")]
-//     Nether,
-//     #[netzer(rename = "minecraft:the_end")]
-//     End
-// }
+#[derive(NetEncode)]
+#[netzer(nominal, protocol = "Utf8<u16, BigEndian>", convert = "&str")]
+pub enum DimensionType {
+    #[netzer(rename = "minecraft:overworld")]
+    Overworld,
+    #[netzer(rename = "minecraft:the_nether")]
+    Nether,
+    #[netzer(rename = "minecraft:the_end")]
+    End
+}
 
 
 fn main() {
