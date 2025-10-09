@@ -51,13 +51,18 @@ pub(crate) fn derive_netencode_struct_fields(fields : &Fields, error_variant_pre
         } };
 
         let ident = ident_or(i, field);
-        let error_variant = field.ident.as_ref().map_or_else(|| format!("E{i}"), |i| i.to_string().to_case(Case::Pascal));
+        let error_variant = args.error.unwrap_or_else(|| Ident::new(
+            &format!("{error_variant_prefix}{}", field.ident.as_ref()
+                .map_or_else(|| format!("E{i}"), |i| i.to_string().to_case(Case::Pascal))
+            ),
+            field.span()
+        ));
         encodes.extend(derive_netencode_value(
             &args.value,
             None,
             &field.ty,
             quote!{ #ident },
-            Ident::new(&format!("{error_variant_prefix}{error_variant}"), field.span()),
+            error_variant,
             error_decl
         ));
     }

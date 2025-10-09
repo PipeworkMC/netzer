@@ -27,5 +27,8 @@ struct EnumDeriveAttrArgs {
 #[darling(attributes(netzer))]
 struct EnumVariantAttrArgs {
     #[darling(default)]
-    rename : Option<String>
+    rename : Option<String>,
+
+    #[darling(default)]
+    error : Option<Ident>
 }

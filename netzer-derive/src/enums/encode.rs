@@ -71,7 +71,7 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
                     Fields::Unnamed(_) => quote!{ ( #field_idents ) },
                     Fields::Unit       => quote!{ },
                 } };
-                let variant_error = ident.to_string().to_case(Case::Pascal);
+                let variant_error = variant_args.error.map_or_else(|| ident.to_string().to_case(Case::Pascal), |v| v.to_string());
                 let ordinal_encode = derive_netencode_value(
                     &args.value,
                     repr.as_ref(),

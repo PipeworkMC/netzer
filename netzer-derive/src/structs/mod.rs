@@ -19,5 +19,8 @@ struct StructDeriveAttrArgs {
 #[darling(attributes(netzer))]
 struct StructFieldAttrArgs {
     #[darling(flatten)]
-    value : ValueAttrArgs
+    value : ValueAttrArgs,
+
+    #[darling(default)]
+    error : Option<Ident>
 }
