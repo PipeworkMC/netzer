@@ -5,7 +5,6 @@ use crate::{
         EnumDeriveAttrArgs,
         EnumVariantAttrArgs
     },
-    error::DeriveNetEncodeErrorDecl,
     util::ident_or
 };
 use proc_macro2::{ TokenStream, Span };
@@ -21,16 +20,13 @@ use syn::{
 };
 use quote::{ quote, quote_spanned };
 use darling::{ FromDeriveInput, FromVariant };
-use convert_case::{ Case, Casing };
 
 
-pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnum) -> (TokenStream, DeriveNetEncodeErrorDecl,) {
+pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnum) -> TokenStream {
     let args = { match (EnumDeriveAttrArgs::from_derive_input(input)) {
         Ok(args) => args,
-        Err(err) => { return (err.write_errors(), DeriveNetEncodeErrorDecl::empty(),); }
+        Err(err) => { return err.write_errors(); }
     } };
-
-    let mut error_decl = DeriveNetEncodeErrorDecl::new_encode(args.encode_error.as_ref(), &input.ident);
 
     let mut repr = None;
     for Attribute { meta, .. } in &input.attrs {
@@ -44,26 +40,26 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
         }
     }
     if (repr.is_none() && args.value.convert.is_none()) {
-        return (quote!{ compile_error!("enum must have `#[netzer(convert = \"...\")]` or `#[repr(...)]`"); }, DeriveNetEncodeErrorDecl::empty(),);
+        return quote!{ compile_error!("enum must have `#[netzer(convert = \"...\")]` or `#[repr(...)]`"); };
     }
 
     let mut match_body = quote!{ };
     match ((args.ordinal, args.nominal,)) {
-        (false, false,) => { return (quote!{ compile_error!("enum must have `#[netzer(ordinal)]` or `#[netzer(nominal)]`"); }, DeriveNetEncodeErrorDecl::empty()); },
-        (true, true,) => { return (quote!{ compile_error!("enum can not be encoded as both `ordinal` and `nominal`"); }, DeriveNetEncodeErrorDecl::empty()); },
+        (false, false,) => { return quote!{ compile_error!("enum must have `#[netzer(ordinal)]` or `#[netzer(nominal)]`"); }; },
+        (true, true,) => { return quote!{ compile_error!("enum can not be encoded as both `ordinal` and `nominal`"); }; },
 
         (true, false,) => {
             for variant @ Variant { ident, fields, discriminant, .. } in &data.variants {
                 let variant_args = { match (EnumVariantAttrArgs::from_variant(variant)) {
                     Ok(variant_args) => variant_args,
-                    Err(err) => { return (err.write_errors(), DeriveNetEncodeErrorDecl::empty(),); }
+                    Err(err) => { return err.write_errors(); }
                 } };
                 if (variant_args.rename.is_some()) {
-                    return (quote!{ compile_error!("variant in ordinal-encoded enum can not be renamed"); }, DeriveNetEncodeErrorDecl::empty());
+                    return quote!{ compile_error!("variant in ordinal-encoded enum can not be renamed"); };
                 }
 
                 let Some((_, discriminant,)) = discriminant
-                    else { return (quote_spanned!{ variant.span() => compile_error!("ordinal-encoded enum must have a discriminant"); }, DeriveNetEncodeErrorDecl::empty()); };
+                    else { return quote_spanned!{ variant.span() => compile_error!("ordinal-encoded enum must have a discriminant"); }; };
                 let field_idents = fields.iter().enumerate().map(|(i, field,)| ident_or(i, field));
                 let field_idents = quote!{ #( #field_idents , )* };
                 let destructure = { match (fields) {
@@ -71,7 +67,6 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
                     Fields::Unnamed(_) => quote!{ ( #field_idents ) },
                     Fields::Unit       => quote!{ },
                 } };
-                let variant_error = variant_args.error.map_or_else(|| ident.to_string().to_case(Case::Pascal), |v| v.to_string());
                 let ordinal_encode = derive_netencode_value(
                     &args.value,
                     repr.as_ref(),
@@ -79,11 +74,9 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
                         PathSegment { ident : Ident::new("core", Span::call_site()), arguments : PathArguments::None },
                         PathSegment { ident : Ident::new("usize", Span::call_site()), arguments : PathArguments::None }
                     ]) } }),
-                    quote!{ #discriminant },
-                    Ident::new(&variant_error, ident.span()),
-                    &mut error_decl
+                    quote!{ #discriminant }
                 );
-                let encode_fields = derive_netencode_struct_fields(fields, variant_error, &mut error_decl);
+                let encode_fields = derive_netencode_struct_fields(fields);
                 match_body.extend(quote!{ Self::#ident #destructure => {
                     #ordinal_encode
                     #encode_fields
@@ -94,5 +87,5 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
         (false, true,) => { todo!("nominal"); }
 
     }
-    (quote!{ match (self) { #match_body } }, error_decl,)
+    quote!{ match (self) { #match_body } }
 }

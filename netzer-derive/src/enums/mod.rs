@@ -1,5 +1,4 @@
 use crate::value::ValueAttrArgs;
-use syn::Ident;
 use darling::{ FromDeriveInput, FromVariant };
 
 
@@ -15,20 +14,12 @@ struct EnumDeriveAttrArgs {
     nominal : bool,
 
     #[darling(flatten)]
-    value : ValueAttrArgs,
-
-    #[darling(default)]
-    encode_error : Option<Ident>,
-    // #[darling(default)]
-    // decode_error : Option<Ident>
+    value : ValueAttrArgs
 }
 
 #[derive(Debug, FromVariant)]
 #[darling(attributes(netzer))]
 struct EnumVariantAttrArgs {
     #[darling(default)]
-    rename : Option<String>,
-
-    #[darling(default)]
-    error : Option<Ident>
+    rename : Option<String>
 }

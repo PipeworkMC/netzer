@@ -2,17 +2,18 @@ use netzer::{
     NetEncode,
     numeric::BigEndian,
     string::Utf8,
-    varint::{ VarInt, Leb128 }
+    varint::{ VarInt, Leb128 },
+    Result
 };
 
 
 #[derive(NetEncode)]
 struct Hello {
-    // #[netzer(encode_with = "encode_a")]
-    #[netzer(protocol = "BigEndian", convert = "VarInt<u64>")]
-    a : usize
+    #[netzer(encode_with = "encode_a")]
+    // #[netzer(protocol = "Leb128", convert = "VarInt<u64>")]
+    a : u64
 }
-async fn encode_a<W : netzer::AsyncWrite>(a : &u64, mut w : W) -> Result<(), std::io::Error> {
+async fn encode_a<W : netzer::AsyncWrite>(a : &u64, mut w : W) -> Result {
     write!(w, "{a}").await
 }
 

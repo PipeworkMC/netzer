@@ -3,7 +3,11 @@ use crate::{
     NetEncode,
     NetDecode
 };
-use core::ops::{ BitAnd, BitOr, Shl, Shr, Not };
+use core::{
+    error::Error as StdError,
+    fmt::{ self, Display, Formatter },
+    ops::{ BitAnd, BitOr, Shl, Shr, Not }
+};
 use std::io;
 use smol::io::{
     AsyncWrite, AsyncWriteExt,
@@ -103,12 +107,20 @@ impl Leb128VarIntType for u128 {
     #[inline(always)] fn from_raw(v : Self::Raw) -> Self { v.cast_unsigned() }
 }
 
+#[derive(Debug)]
+pub struct Leb128TooLong;
+impl StdError for Leb128TooLong { }
+impl Display for Leb128TooLong {
+    fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "leb128 too long")
+    }
+}
+
 
 pub struct VarInt<T>(pub T);
 
 impl<T : Leb128VarIntType> NetEncode<Leb128> for VarInt<T> {
-    type Error = io::Error;
-    async fn encode<W : AsyncWrite + Unpin>(&self, mut writer : W) -> Result<(), Self::Error> {
+    async fn encode<W : AsyncWrite + Unpin>(&self, mut writer : W) -> crate::Result {
         let self_segment_bits = T::Raw::from_u8(SEGMENT_BITS);
         let self_continue_bit = T::Raw::from_u8(CONTINUE_BIT);
         let u8_max            = T::Raw::from_u8(u8::MAX);
@@ -125,19 +137,18 @@ impl<T : Leb128VarIntType> NetEncode<Leb128> for VarInt<T> {
 }
 
 impl<T : Leb128VarIntType> NetDecode<Leb128> for VarInt<T> {
-    type Error = Leb128DecodeError;
-    async fn decode<R : AsyncRead + Unpin>(mut reader : R) -> Result<Self, Self::Error> {
+    async fn decode<R : AsyncRead + Unpin>(mut reader : R) -> crate::Result<Self> {
         let max_shift = size_of::<T::Raw>() * 8;
         let mut v     = T::Raw::ZERO;
         let mut shift = 0;
         loop {
             let mut buf = [0u8; 1];
-            reader.read_exact(&mut buf).await.map_err(Leb128DecodeError::Io)?;
+            reader.read_exact(&mut buf).await?;
             let b = buf[0];
             v = v | (T::Raw::from_u8(b & SEGMENT_BITS) << shift);
             if ((b & CONTINUE_BIT) == 0) { break; }
             shift += 7;
-            if (shift > max_shift) { return Err(Leb128DecodeError::TooLong); }
+            if (shift > max_shift) { return Err(Leb128TooLong.into()); }
         }
         Ok(Self(T::from_raw(v)))
     }

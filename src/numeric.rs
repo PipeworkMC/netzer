@@ -1,9 +1,9 @@
 use crate::{
     Protocol,
     NetEncode,
-    NetDecode
+    NetDecode,
+    Result
 };
-use std::io;
 use smol::io::{
     AsyncWrite, AsyncWriteExt,
     AsyncRead, AsyncReadExt
@@ -23,14 +23,13 @@ macro_rules! impl_netencode_for_numeric {
     ( $ty:ty $(,)? ) => {
 
         impl NetEncode<BigEndian> for $ty {
-            type Error = io::Error;
-            async fn encode<W : AsyncWrite + Unpin>(&self, mut writer : W) -> Result<(), Self::Error> {
-                writer.write_all(&self.to_be_bytes()).await
+            async fn encode<W : AsyncWrite + Unpin>(&self, mut writer : W) -> Result {
+                writer.write_all(&self.to_be_bytes()).await?;
+                Ok(())
             }
         }
         impl NetDecode<BigEndian> for $ty {
-            type Error = io::Error;
-            async fn decode<R : AsyncRead + Unpin>(mut reader : R) -> Result<Self, Self::Error> {
+            async fn decode<R : AsyncRead + Unpin>(mut reader : R) -> Result<Self> {
                 let mut buf = [0u8; size_of::<Self>()];
                 reader.read_exact(&mut buf).await?;
                 Ok(Self::from_be_bytes(buf))
@@ -38,14 +37,13 @@ macro_rules! impl_netencode_for_numeric {
         }
 
         impl NetEncode<LittleEndian> for $ty {
-            type Error = io::Error;
-            async fn encode<W : AsyncWrite + Unpin>(&self, mut writer : W) -> Result<(), Self::Error> {
-                writer.write_all(&self.to_le_bytes()).await
+            async fn encode<W : AsyncWrite + Unpin>(&self, mut writer : W) -> Result {
+                writer.write_all(&self.to_le_bytes()).await?;
+                Ok(())
             }
         }
         impl NetDecode<LittleEndian> for $ty {
-            type Error = io::Error;
-            async fn decode<R : AsyncRead + Unpin>(mut reader : R) -> Result<Self, Self::Error> {
+            async fn decode<R : AsyncRead + Unpin>(mut reader : R) -> Result<Self> {
                 let mut buf = [0u8; size_of::<Self>()];
                 reader.read_exact(&mut buf).await?;
                 Ok(Self::from_le_bytes(buf))
@@ -71,14 +69,13 @@ impl_netencode_for_numeric!(f64);
 
 
 impl NetEncode<BigEndian> for bool {
-    type Error = io::Error;
-    async fn encode<W : AsyncWrite + Unpin>(&self, mut writer : W) -> Result<(), Self::Error> {
-        writer.write_all(&[ if (*self) { 1u8 } else { 0u8 } ]).await
+    async fn encode<W : AsyncWrite + Unpin>(&self, mut writer : W) -> Result {
+        writer.write_all(&[ if (*self) { 1u8 } else { 0u8 } ]).await?;
+        Ok(())
     }
 }
 impl NetDecode<BigEndian> for bool {
-    type Error = io::Error;
-    async fn decode<R : AsyncRead + Unpin>(mut reader : R) -> Result<Self, Self::Error> {
+    async fn decode<R : AsyncRead + Unpin>(mut reader : R) -> Result<Self> {
         let mut buf = [0u8; 1];
         reader.read_exact(&mut buf).await?;
         Ok(buf[0] != 0)
@@ -86,14 +83,13 @@ impl NetDecode<BigEndian> for bool {
 }
 
 impl NetEncode<LittleEndian> for bool {
-    type Error = io::Error;
-    async fn encode<W : AsyncWrite + Unpin>(&self, mut writer : W) -> Result<(), Self::Error> {
-        writer.write_all(&[ if (*self) { 1u8 } else { 0u8 } ]).await
+    async fn encode<W : AsyncWrite + Unpin>(&self, mut writer : W) -> Result {
+        writer.write_all(&[ if (*self) { 1u8 } else { 0u8 } ]).await?;
+        Ok(())
     }
 }
 impl NetDecode<LittleEndian> for bool {
-    type Error = io::Error;
-    async fn decode<R : AsyncRead + Unpin>(mut reader : R) -> Result<Self, Self::Error> {
+    async fn decode<R : AsyncRead + Unpin>(mut reader : R) -> Result<Self> {
         let mut buf = [0u8; 1];
         reader.read_exact(&mut buf).await?;
         Ok(buf[0] != 0)
