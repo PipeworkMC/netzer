@@ -2,7 +2,7 @@ use crate::value::ValueAttrArgs;
 use proc_macro2::TokenStream;
 use syn::{
     Type,
-    spanned::Spanned
+    spanned::Spanned as _
 };
 use quote::{ quote, quote_spanned };
 
@@ -21,8 +21,8 @@ pub(crate) fn derive_netencode_value(
         },
 
         (None, Some(spanned),) => {
-            let convert = &**spanned;
-            quote_spanned!{ spanned.span() => ::core::convert::TryInto::<#convert>::try_into(#expr.clone())? }
+            let try_convert = &**spanned;
+            quote_spanned!{ spanned.span() => ::core::convert::TryInto::<#try_convert>::try_into(#expr.clone())? }
         },
 
         (None, None,) => {
@@ -38,14 +38,6 @@ pub(crate) fn derive_netencode_value(
     match ((&opts.format, &opts.encode_with,)) {
         (Some(_), Some(_),) => { return quote!{ compile_error!("value may not have both `format` and `format_with`"); }; },
 
-        (Some(spanned), None,) => {
-            let format = &**spanned;
-            quote_spanned!{ spanned.span() =>
-                ::netzer::NetEncode::<#format>
-                    ::encode(&#value, &mut netzer_derive_netencode_writer).await?;
-            }
-        },
-
         (None, Some(spanned),) => {
             let encode_with = &**spanned;
             quote_spanned!{ spanned.span() =>
@@ -57,9 +49,19 @@ pub(crate) fn derive_netencode_value(
             }
         },
 
-        (None, None,) => quote!{
-            ::netzer::NetEncode::<NetzerDeriveNetEncodeNetFormats>
-                ::encode(&#value, &mut netzer_derive_netencode_writer).await?;
+        (Some(spanned), None,) => {
+            let format = &**spanned;
+            quote_spanned!{ spanned.span() =>
+                ::netzer::NetEncode::<#format>
+                    ::encode(&#value, &mut netzer_derive_netencode_writer).await?;
+            }
+        },
+
+        (None, None,) => {
+            quote!{
+                ::netzer::NetEncode::<Inherit>
+                    ::encode(&#value, &mut netzer_derive_netencode_writer).await?;
+            }
         }
 
     }

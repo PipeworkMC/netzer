@@ -1,5 +1,12 @@
 use netzer::prelude::*;
-use netzer::Result;
+use netzer::{ NetFormat, Result };
+
+
+#[derive(NetEncode)]
+pub struct InheritTest {
+    #[netzer(format = "Inherit")]
+    s : String
+}
 
 
 #[derive(NetEncode)]

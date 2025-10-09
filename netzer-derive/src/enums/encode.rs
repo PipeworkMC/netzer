@@ -5,7 +5,10 @@ use crate::{
         EnumDeriveAttrArgs,
         EnumVariantAttrArgs
     },
-    util::ident_or
+    util::{
+        ident_or,
+        finalise_encode
+    }
 };
 use proc_macro2::TokenStream;
 use syn::{
@@ -30,7 +33,7 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
     } };
 
     let mut match_body = quote!{ };
-    match ((&*args.ordinal, &*args.nominal,)) {
+    match ((args.ordinal.is_present(), args.nominal.is_present(),)) {
         (false, false,) => { return quote!{ compile_error!("enum must have `#[netzer(ordinal)]` or `#[netzer(nominal)]`"); }; },
         (true, true,) => { return quote!{ compile_error!("enum can not be encoded as both `ordinal` and `nominal`"); }; },
 
@@ -113,5 +116,9 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
         }
 
     }
-    quote!{ match (self) { #match_body } }
+
+    finalise_encode(
+        &input.ident,
+        quote!{ match (self) { #match_body } }
+    )
 }

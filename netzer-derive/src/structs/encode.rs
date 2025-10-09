@@ -4,7 +4,10 @@ use crate::{
         StructDeriveAttrArgs,
         StructFieldAttrArgs
     },
-    util::ident_or
+    util::{
+        ident_or,
+        finalise_encode
+    }
 };
 use proc_macro2::TokenStream;
 use syn::{
@@ -29,10 +32,14 @@ pub(crate) fn derive_netencode_struct_encode(input : &DeriveInput, data : &DataS
         Fields::Unit       => quote!{ },
     } };
     let encode_fields = derive_netencode_struct_fields(&data.fields);
-    quote!{
-        let Self #destructure = &self;
-        #encode_fields
-    }
+
+    finalise_encode(
+        &input.ident,
+        quote!{
+            let Self #destructure = &self;
+            #encode_fields
+        }
+    )
 }
 
 
