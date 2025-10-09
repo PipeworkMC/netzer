@@ -154,52 +154,112 @@ impl<T : Leb128VarIntType> NetDecode<Leb128> for VarInt<T> {
     }
 }
 
-impl TryFrom<usize> for VarInt<u32> {
-    type Error = <u32 as TryFrom<usize>>::Error;
-    fn try_from(value : usize) -> Result<Self, Self::Error> {
-        Ok(Self(<u32 as TryFrom<usize>>::try_from(value)?))
-    }
-}
-impl TryFrom<isize> for VarInt<i32> {
-    type Error = <i32 as TryFrom<isize>>::Error;
-    fn try_from(value : isize) -> Result<Self, Self::Error> {
-        Ok(Self(<i32 as TryFrom<isize>>::try_from(value)?))
-    }
-}
-impl TryFrom<usize> for VarInt<u64> {
-    type Error = <u64 as TryFrom<usize>>::Error;
-    fn try_from(value : usize) -> Result<Self, Self::Error> {
-        Ok(Self(<u64 as TryFrom<usize>>::try_from(value)?))
-    }
-}
-impl TryFrom<isize> for VarInt<i64> {
-    type Error = <i64 as TryFrom<isize>>::Error;
-    fn try_from(value : isize) -> Result<Self, Self::Error> {
-        Ok(Self(<i64 as TryFrom<isize>>::try_from(value)?))
-    }
+
+macro_rules! impl_from_for_varint {
+    ( $from:ty, $into:ty $(,)? ) => {
+        impl From<$from> for VarInt<$into> {
+            fn from(value : $from) -> Self {
+                Self(<$into as From<$from>>::from(value))
+            }
+        }
+        impl From<VarInt<$from>> for $into {
+            fn from(value : VarInt<$from>) -> $into {
+                <$into as From<$from>>::from(value.0)
+            }
+        }
+    };
 }
 
-impl TryInto<usize> for VarInt<u32> {
-    type Error = <u32 as TryInto<usize>>::Error;
-    fn try_into(self) -> Result<usize, Self::Error> {
-        <u32 as TryInto<usize>>::try_into(self.0)
-    }
+impl_from_for_varint!(bool, u16);
+impl_from_for_varint!(u8, u16);
+impl_from_for_varint!(u16, u16);
+impl_from_for_varint!(bool, u32);
+impl_from_for_varint!(u8, u32);
+impl_from_for_varint!(u16, u32);
+impl_from_for_varint!(u32, u32);
+impl_from_for_varint!(bool, u64);
+impl_from_for_varint!(u8, u64);
+impl_from_for_varint!(u16, u64);
+impl_from_for_varint!(u32, u64);
+impl_from_for_varint!(u64, u64);
+impl_from_for_varint!(bool, u128);
+impl_from_for_varint!(u8, u128);
+impl_from_for_varint!(u16, u128);
+impl_from_for_varint!(u32, u128);
+impl_from_for_varint!(u64, u128);
+impl_from_for_varint!(u128, u128);
+impl_from_for_varint!(bool, i16);
+impl_from_for_varint!(u8, i16);
+impl_from_for_varint!(i8, i16);
+impl_from_for_varint!(i16, i16);
+impl_from_for_varint!(bool, i32);
+impl_from_for_varint!(u8, i32);
+impl_from_for_varint!(u16, i32);
+impl_from_for_varint!(i8, i32);
+impl_from_for_varint!(i16, i32);
+impl_from_for_varint!(i32, i32);
+impl_from_for_varint!(bool, i64);
+impl_from_for_varint!(u8, i64);
+impl_from_for_varint!(u16, i64);
+impl_from_for_varint!(u32, i64);
+impl_from_for_varint!(i8, i64);
+impl_from_for_varint!(i16, i64);
+impl_from_for_varint!(i32, i64);
+impl_from_for_varint!(i64, i64);
+impl_from_for_varint!(bool, i128);
+impl_from_for_varint!(u8, i128);
+impl_from_for_varint!(u16, i128);
+impl_from_for_varint!(u32, i128);
+impl_from_for_varint!(u64, i128);
+impl_from_for_varint!(i8, i128);
+impl_from_for_varint!(i16, i128);
+impl_from_for_varint!(i32, i128);
+impl_from_for_varint!(i64, i128);
+impl_from_for_varint!(i128, i128);
+
+macro_rules! impl_tryfrom_for_varint {
+    ( $from:ty, $into:ty $(,)? ) => {
+        impl TryFrom<$from> for VarInt<$into> {
+            type Error = <$into as TryFrom<$from>>::Error;
+            fn try_from(value : $from) -> Result<Self, Self::Error> {
+                Ok(Self(<$into as TryFrom<$from>>::try_from(value)?))
+            }
+        }
+        impl TryFrom<VarInt<$from>> for $into {
+            type Error = <$into as TryFrom<$from>>::Error;
+            fn try_from(value : VarInt<$from>) -> Result<$into, Self::Error> {
+                <$into as TryFrom<$from>>::try_from(value.0)
+            }
+        }
+    };
 }
-impl TryInto<isize> for VarInt<i32> {
-    type Error = <i32 as TryInto<isize>>::Error;
-    fn try_into(self) -> Result<isize, Self::Error> {
-        <i32 as TryInto<isize>>::try_into(self.0)
-    }
-}
-impl TryInto<usize> for VarInt<u64> {
-    type Error = <u64 as TryInto<usize>>::Error;
-    fn try_into(self) -> Result<usize, Self::Error> {
-        <u64 as TryInto<usize>>::try_into(self.0)
-    }
-}
-impl TryInto<isize> for VarInt<i64> {
-    type Error = <i64 as TryInto<isize>>::Error;
-    fn try_into(self) -> Result<isize, Self::Error> {
-        <i64 as TryInto<isize>>::try_into(self.0)
-    }
-}
+impl_tryfrom_for_varint!(u32, u16);
+impl_tryfrom_for_varint!(u64, u16);
+impl_tryfrom_for_varint!(u128, u16);
+impl_tryfrom_for_varint!(usize, u16);
+impl_tryfrom_for_varint!(u64, u32);
+impl_tryfrom_for_varint!(u128, u32);
+impl_tryfrom_for_varint!(usize, u32);
+impl_tryfrom_for_varint!(u128, u64);
+impl_tryfrom_for_varint!(usize, u64);
+impl_tryfrom_for_varint!(usize, u128);
+impl_tryfrom_for_varint!(u16, i16);
+impl_tryfrom_for_varint!(u32, i16);
+impl_tryfrom_for_varint!(u64, i16);
+impl_tryfrom_for_varint!(u128, i16);
+impl_tryfrom_for_varint!(i32, i16);
+impl_tryfrom_for_varint!(i64, i16);
+impl_tryfrom_for_varint!(i128, i16);
+impl_tryfrom_for_varint!(isize, i16);
+impl_tryfrom_for_varint!(u32, i32);
+impl_tryfrom_for_varint!(u64, i32);
+impl_tryfrom_for_varint!(u128, i32);
+impl_tryfrom_for_varint!(i64, i32);
+impl_tryfrom_for_varint!(i128, i32);
+impl_tryfrom_for_varint!(isize, i32);
+impl_tryfrom_for_varint!(u64, i64);
+impl_tryfrom_for_varint!(u128, i64);
+impl_tryfrom_for_varint!(i128, i64);
+impl_tryfrom_for_varint!(isize, i64);
+impl_tryfrom_for_varint!(u128, i128);
+impl_tryfrom_for_varint!(isize, i128);
