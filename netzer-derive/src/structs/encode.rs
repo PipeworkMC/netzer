@@ -48,7 +48,7 @@ pub(crate) fn derive_netencode_struct_fields(fields : &Fields) -> TokenStream {
         } };
 
         let ident = ident_or(i, field);
-        encodes.extend(derive_netencode_value(&args.value, None, quote!{ #ident }));
+        encodes.extend(derive_netencode_value(&args.value, None, &field.ty, quote!{ #ident }));
     }
     encodes
 }

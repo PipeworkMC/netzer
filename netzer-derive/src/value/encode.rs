@@ -4,7 +4,7 @@ use syn::Type;
 use quote::quote;
 
 
-pub(crate) fn derive_netencode_value(opts : &ValueAttrArgs, repr : Option<&Type>, expr : TokenStream) -> TokenStream {
+pub(crate) fn derive_netencode_value(opts : &ValueAttrArgs, repr : Option<&Type>, ty : &Type, expr : TokenStream) -> TokenStream {
     let value = { if let Some(convert) = &opts.convert {
         quote!{ ::core::convert::Into::<#convert>::into(#expr) }
     } else if let Some(repr) = repr {
@@ -17,7 +17,7 @@ pub(crate) fn derive_netencode_value(opts : &ValueAttrArgs, repr : Option<&Type>
         (Some(_), Some(_),) => { quote!{ compile_error!("value may not have both `encode_as` and `encode_with`"); } },
 
         (None, Some(function),) => { quote!{
-            ::netzer::EncodeWith::<_, _>::encode(
+            ::netzer::EncodeWith::<#ty, NetzerDeriveNetEncodeWrite>::encode(
                 &mut #function,
                 &#value,
                 &mut netzer_derive_netencode_writer

@@ -8,14 +8,16 @@ use crate::{
     error::DeriveNetEncodeErrorDecl,
     util::ident_or
 };
-use proc_macro2::TokenStream;
+use proc_macro2::{ TokenStream, Span };
 use syn::{
     DeriveInput, DataEnum,
     Variant, Fields,
     Attribute, Meta, MetaList, MacroDelimiter,
     Path, PathSegment, PathArguments,
-    Type,
-    spanned::Spanned as _,
+    Type, TypePath,
+    Ident, Token,
+    punctuated::Punctuated,
+    spanned::Spanned as _
 };
 use quote::{ quote, quote_spanned };
 use darling::{ FromDeriveInput, FromVariant };
@@ -68,7 +70,15 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
                     Fields::Unnamed(_) => quote!{ ( #field_idents ) },
                     Fields::Unit       => quote!{ },
                 } };
-                let ordinal_encode = derive_netencode_value(&args.value, repr.as_ref(), quote!{ #discriminant });
+                let ordinal_encode = derive_netencode_value(
+                    &args.value,
+                    repr.as_ref(),
+                    &Type::Path(TypePath { qself : None, path : Path { leading_colon : Some(Token![::](Span::call_site())), segments : Punctuated::from_iter([
+                        PathSegment { ident : Ident::new("core", Span::call_site()), arguments : PathArguments::None },
+                        PathSegment { ident : Ident::new("usize", Span::call_site()), arguments : PathArguments::None }
+                    ]) } }),
+                    quote!{ #discriminant }
+                );
                 let encode_fields = derive_netencode_struct_fields(fields);
                 match_body.extend(quote!{ Self::#ident #destructure => {
                     #ordinal_encode
