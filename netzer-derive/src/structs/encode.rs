@@ -17,12 +17,12 @@ use darling::{ FromDeriveInput, FromField };
 
 
 pub(crate) fn derive_netencode_struct_encode(input : &DeriveInput, data : &DataStruct) -> (TokenStream, DeriveNetEncodeErrorDecl,) {
-    let mut error_decl = DeriveNetEncodeErrorDecl::default();
-
-    let _args = { match (StructDeriveAttrArgs::from_derive_input(input)) {
+    let args = { match (StructDeriveAttrArgs::from_derive_input(input)) {
         Ok(args) => args,
-        Err(err) => { return (err.write_errors(), error_decl,); }
+        Err(err) => { return (err.write_errors(), DeriveNetEncodeErrorDecl::empty(),); }
     } };
+
+    let mut error_decl = DeriveNetEncodeErrorDecl::new_encode(args.encode_error.as_ref(), &input.ident);
 
     let field_idents = data.fields.iter().enumerate().map(|(i, field,)| ident_or(i, field));
     let field_idents = quote!{ #( #field_idents , )* };

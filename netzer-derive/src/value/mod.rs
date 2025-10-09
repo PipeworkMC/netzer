@@ -1,4 +1,4 @@
-use syn::{ Type, Expr, Ident };
+use syn::{ Type, Expr };
 use darling::FromMeta;
 
 

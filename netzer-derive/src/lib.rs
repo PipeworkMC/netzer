@@ -26,34 +26,28 @@ pub fn derive_netencode(item : TokenStream) -> TokenStream {
     let vis   = input.vis;
     let ident = &input.ident;
 
-    let mut out = quote!{ };
+    let error_ident = error_decl.ident;
 
-    let mut error_type = quote!{ ::std::io::Error };
-    if let Some(error_ident) = error_decl.ident {
-        error_type = quote!{ #error_ident };
-        out.extend(quote!{
-            #vis enum $error_ident {}
-        });
-    }
+    quote!{
 
-    out.extend(quote!{
         impl<NetzerDeriveNetEncodeProtocol : ::netzer::Protocol>
             ::netzer::NetEncode<NetzerDeriveNetEncodeProtocol>
             for #ident
         {
-            type Error = #error_type;
+            type Error = #error_ident;
             async fn encode<NetzerDeriveNetEncodeWrite : ::netzer::AsyncWrite>(&self, mut netzer_derive_netencode_writer : NetzerDeriveNetEncodeWrite) -> ::core::result::Result<(), <Self as ::netzer::NetEncode<NetzerDeriveNetEncodeProtocol>>::Error> {
                 #function_body
                 Ok(())
             }
         }
-    });
 
-    out.into()
+        #vis enum #error_ident {}
+
+    }.into()
 }
 
 
 #[proc_macro_derive(NetDecode, attributes(netzer))]
-pub fn derive_netdecode(item : TokenStream) -> TokenStream {
+pub fn derive_netdecode(_item : TokenStream) -> TokenStream {
     todo!("derive NetDecode")
 }
