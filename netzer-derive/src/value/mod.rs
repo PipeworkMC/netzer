@@ -17,5 +17,7 @@ pub(crate) struct ValueAttrArgs {
     // #[darling(default)]
     // pub(crate) decode_with : Option<SpannedValue<Expr>>,
     #[darling(default)]
-    pub(crate) convert     : Option<SpannedValue<Type>>
+    pub(crate) convert     : Option<SpannedValue<Type>>,
+    #[darling(default)]
+    pub(crate) try_convert : Option<SpannedValue<Type>>
 }

@@ -10,20 +10,21 @@ use netzer::{
 #[derive(NetEncode)]
 struct Hello {
     #[netzer(encode_with = "encode_a")]
-    // #[netzer(protocol = "Leb128", convert = "VarInt<u64>")]
-    a : u64
+    a : u64,
+    #[netzer(protocol = "Leb128", try_convert = "VarInt<i64>")]
+    b : i32
 }
 async fn encode_a<W : netzer::AsyncWrite>(a : &u64, mut w : W) -> Result {
     write!(w, "{a}").await
 }
 
 
-// #[derive(NetEncode)]
-// #[netzer(ordinal, protocol = "BigEndian")]
+#[derive(NetEncode)]
+#[netzer(ordinal, protocol = "BigEndian")]
 #[repr(u8)]
 enum GameMode {
     Survival(
-        // #[netzer(protocol = "BigEndian")]
+        #[netzer(protocol = "BigEndian")]
         u32
     ) = 0,
     Creative  = 1,
