@@ -15,7 +15,7 @@ async fn encode_a<W : netzer::AsyncWrite>(a : &u64, mut w : W) -> Result<(), std
 
 
 #[derive(NetEncode)]
-#[netzer(ordinal, protocol = "BigEndian", convert = "u8")]
+#[netzer(ordinal, protocol = "BigEndian")]
 #[repr(u8)]
 enum GameMode {
     Survival(

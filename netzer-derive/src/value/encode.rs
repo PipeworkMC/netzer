@@ -1,11 +1,14 @@
 use super::ValueAttrArgs;
 use proc_macro2::TokenStream;
+use syn::Type;
 use quote::quote;
 
 
-pub(crate) fn derive_netencode_value(opts : &ValueAttrArgs, expr : TokenStream) -> TokenStream {
+pub(crate) fn derive_netencode_value(opts : &ValueAttrArgs, repr : Option<&Type>, expr : TokenStream) -> TokenStream {
     let value = { if let Some(convert) = &opts.convert {
         quote!{ ::core::convert::Into::<#convert>::into(#expr) }
+    } else if let Some(repr) = repr {
+        quote!{ ::core::convert::Into::<#repr>::into(#expr) }
     } else {
         quote!{ #expr }
     } };
