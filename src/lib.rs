@@ -7,6 +7,7 @@ use smol::io::{ AsyncWrite, AsyncRead };
 
 
 pub mod numeric;
+pub mod string;
 pub mod varint;
 
 
@@ -22,8 +23,7 @@ pub trait NetEncode<P : Protocol> {
 }
 
 #[cfg(feature = "smol")]
-pub trait AsyncNetEncode<P : Protocol> {
-    type Error;
+pub trait AsyncNetEncode<P : Protocol> : NetEncode<P> {
     fn async_encode<W : AsyncWrite + Unpin>(&self, writer : W) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
@@ -36,7 +36,6 @@ pub trait NetDecode<P : Protocol> : Sized {
 }
 
 #[cfg(feature = "smol")]
-pub trait AsyncNetDecode<P : Protocol> : Sized {
-    type Error;
+pub trait AsyncNetDecode<P : Protocol> : NetDecode<P> + Sized {
     fn async_decode<R : AsyncRead + Unpin>(reader : R) -> impl Future<Output = Result<Self, Self::Error>>;
 }

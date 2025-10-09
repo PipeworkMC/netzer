@@ -132,7 +132,6 @@ impl<T : Leb128VarIntType> NetEncode<Leb128> for VarInt<T> {
 
 #[cfg(feature = "smol")]
 impl<T : Leb128VarIntType> AsyncNetEncode<Leb128> for VarInt<T> {
-    type Error = io::Error;
     async fn async_encode<W : AsyncWrite + Unpin>(&self, mut writer : W) -> Result<(), Self::Error> {
         let self_segment_bits = T::Raw::from_u8(SEGMENT_BITS);
         let self_continue_bit = T::Raw::from_u8(CONTINUE_BIT);
@@ -170,7 +169,6 @@ impl<T : Leb128VarIntType> NetDecode<Leb128> for VarInt<T> {
 
 #[cfg(feature = "smol")]
 impl<T : Leb128VarIntType> AsyncNetDecode<Leb128> for VarInt<T> {
-    type Error = Leb128DecodeError;
     async fn async_decode<R : AsyncRead + Unpin>(mut reader : R) -> Result<Self, Self::Error> {
         let max_shift = size_of::<T::Raw>() * 8;
         let mut v     = T::Raw::ZERO;
