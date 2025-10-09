@@ -7,6 +7,7 @@ use netzer::{
 
 
 #[derive(NetEncode)]
+#[netzer(encode_error = "HelloEncodeError")]
 struct Hello {
     #[netzer(protocol = "Utf8<_, _>")]
     a : &'static str
