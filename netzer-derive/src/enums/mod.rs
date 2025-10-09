@@ -1,5 +1,8 @@
 use crate::value::ValueAttrArgs;
-use darling::{ FromDeriveInput, FromVariant };
+use darling::{
+    FromDeriveInput, FromVariant,
+    util::SpannedValue
+};
 
 
 pub(crate) mod encode;
@@ -9,9 +12,9 @@ pub(crate) mod encode;
 #[darling(attributes(netzer))]
 struct EnumDeriveAttrArgs {
     #[darling(default)]
-    ordinal : bool,
+    ordinal : SpannedValue<bool>,
     #[darling(default)]
-    nominal : bool,
+    nominal : SpannedValue<bool>,
 
     #[darling(flatten)]
     value : ValueAttrArgs
@@ -21,5 +24,5 @@ struct EnumDeriveAttrArgs {
 #[darling(attributes(netzer))]
 struct EnumVariantAttrArgs {
     #[darling(default)]
-    rename : Option<String>
+    rename : Option<SpannedValue<String>>
 }

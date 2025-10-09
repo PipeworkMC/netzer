@@ -7,15 +7,13 @@ use crate::{
     },
     util::ident_or
 };
-use proc_macro2::{ TokenStream, Span };
+use proc_macro2::TokenStream;
 use syn::{
     DeriveInput, DataEnum,
     Variant, Fields,
     Attribute, Meta, MetaList, MacroDelimiter,
     Path, PathSegment, PathArguments,
-    Type, TypePath,
-    Ident, Token,
-    punctuated::Punctuated,
+    Type,
     spanned::Spanned as _
 };
 use quote::{ quote, quote_spanned };
@@ -44,7 +42,7 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
     }
 
     let mut match_body = quote!{ };
-    match ((args.ordinal, args.nominal,)) {
+    match ((&*args.ordinal, &*args.nominal,)) {
         (false, false,) => { return quote!{ compile_error!("enum must have `#[netzer(ordinal)]` or `#[netzer(nominal)]`"); }; },
         (true, true,) => { return quote!{ compile_error!("enum can not be encoded as both `ordinal` and `nominal`"); }; },
 
@@ -54,8 +52,8 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
                     Ok(variant_args) => variant_args,
                     Err(err) => { return err.write_errors(); }
                 } };
-                if (variant_args.rename.is_some()) {
-                    return quote!{ compile_error!("variant in ordinal-encoded enum can not be renamed"); };
+                if let Some(rename) = &variant_args.rename {
+                    return quote_spanned!{ rename.span() => compile_error!("variant in ordinal-encoded enum can not be renamed"); };
                 }
 
                 let Some((_, discriminant,)) = discriminant
@@ -70,10 +68,6 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
                 let ordinal_encode = derive_netencode_value(
                     &args.value,
                     repr.as_ref(),
-                    &Type::Path(TypePath { qself : None, path : Path { leading_colon : Some(Token![::](Span::call_site())), segments : Punctuated::from_iter([
-                        PathSegment { ident : Ident::new("core", Span::call_site()), arguments : PathArguments::None },
-                        PathSegment { ident : Ident::new("usize", Span::call_site()), arguments : PathArguments::None }
-                    ]) } }),
                     quote!{ #discriminant }
                 );
                 let encode_fields = derive_netencode_struct_fields(fields);

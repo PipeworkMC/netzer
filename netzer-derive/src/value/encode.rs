@@ -1,19 +1,22 @@
 use crate::value::ValueAttrArgs;
 use proc_macro2::TokenStream;
-use syn::Type;
-use quote::quote;
+use syn::{
+    Type,
+    spanned::Spanned
+};
+use quote::{ quote, quote_spanned };
 
 
 pub(crate) fn derive_netencode_value(
     opts : &ValueAttrArgs,
     repr : Option<&Type>,
-    ty   : &Type,
     expr : TokenStream
 ) -> TokenStream {
-    let value = { if let Some(convert) = &opts.convert {
-        quote!{ ::core::convert::Into::<#convert>::into(#expr.clone()) }
+    let value = { if let Some(spanned) = &opts.convert {
+        let convert = &**spanned;
+        quote_spanned!{ spanned.span() => ::core::convert::Into::<#convert>::into(#expr.clone()) }
     } else if let Some(repr) = repr {
-        quote!{ ::core::convert::Into::<#repr>::into(#expr.clone()) }
+        quote_spanned!{ repr.span() => ::core::convert::Into::<#repr>::into(#expr.clone()) }
     } else {
         quote!{ #expr }
     } };
@@ -21,17 +24,23 @@ pub(crate) fn derive_netencode_value(
     match ((&opts.protocol, &opts.encode_with,)) {
         (Some(_), Some(_),) => { return quote!{ compile_error!("value may not have both `encode_as` and `encode_with`"); }; },
 
-        (None, Some(function),) => quote!{
-            ::netzer::EncodeWith::<_, _>::encode(
-                &mut #function,
-                &#value,
-                &mut netzer_derive_netencode_writer
-            ).await?;
+        (None, Some(spanned),) => {
+            let function = &**spanned;
+            quote_spanned!{ spanned.span() =>
+                ::netzer::EncodeWith::<_, _>::encode(
+                    &mut #function,
+                    &#value,
+                    &mut netzer_derive_netencode_writer
+                ).await?;
+            }
         },
 
-        (Some(protocol), None,) => quote!{
-            ::netzer::NetEncode::<#protocol>
-                ::encode(&#value, &mut netzer_derive_netencode_writer).await?;
+        (Some(spanned), None,) => {
+            let protocol = &**spanned;
+            quote_spanned!{ spanned.span() =>
+                ::netzer::NetEncode::<#protocol>
+                    ::encode(&#value, &mut netzer_derive_netencode_writer).await?;
+            }
         },
 
         (None, None,) => quote!{

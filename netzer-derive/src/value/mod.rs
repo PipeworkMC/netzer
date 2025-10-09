@@ -1,5 +1,8 @@
 use syn::{ Type, Expr };
-use darling::FromMeta;
+use darling::{
+    FromMeta,
+    util::SpannedValue
+};
 
 
 pub(crate) mod encode;
@@ -8,11 +11,11 @@ pub(crate) mod encode;
 #[derive(Debug, FromMeta)]
 pub(crate) struct ValueAttrArgs {
     #[darling(default)]
-    pub(crate) protocol    : Option<Type>,
+    pub(crate) protocol    : Option<SpannedValue<Type>>,
     #[darling(default)]
-    pub(crate) encode_with : Option<Expr>,
+    pub(crate) encode_with : Option<SpannedValue<Expr>>,
     // #[darling(default)]
-    // pub(crate) decode_with : Option<Expr>,
+    // pub(crate) decode_with : Option<SpannedValue<Expr>>,
     #[darling(default)]
-    pub(crate) convert     : Option<Type>
+    pub(crate) convert     : Option<SpannedValue<Type>>
 }
