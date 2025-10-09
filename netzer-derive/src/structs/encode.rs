@@ -33,7 +33,7 @@ pub(crate) fn derive_netencode_struct_encode(input : &DeriveInput, data : &DataS
     } };
     let encode_fields = derive_netencode_struct_fields(&data.fields);
     (quote!{
-        let Self #destructure = self;
+        let Self #destructure = &self;
         #encode_fields
     }, error_decl,)
 }

@@ -1,13 +1,15 @@
 use netzer::{
     NetEncode,
-    numeric::BigEndian
+    numeric::BigEndian,
+    string::Utf8,
+    varint::{ VarInt, Leb128 }
 };
 
 
 #[derive(NetEncode)]
 struct Hello {
-    #[netzer(encode_with = encode_a)]
-    a : u64
+    #[netzer(protocol = "Utf8<_, _>")]
+    a : &'static str
 }
 async fn encode_a<W : netzer::AsyncWrite>(a : &u64, mut w : W) -> Result<(), std::io::Error> {
     write!(w, "{a}").await

@@ -51,7 +51,7 @@ where Len : NetDecode<LenProtocol>
 }
 
 
-impl<Len, LenProtocol : Protocol> NetEncode<Utf8<Len, LenProtocol>> for &str
+impl<Len, LenProtocol : Protocol> NetEncode<Utf8<Len, LenProtocol>> for str
 where Len : NetEncode<LenProtocol> + From<usize>
 {
     type Error = Utf8EncodeError<Len, LenProtocol>;
