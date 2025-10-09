@@ -142,3 +142,28 @@ impl<T : Leb128VarIntType> NetDecode<Leb128> for VarInt<T> {
         Ok(Self(T::from_raw(v)))
     }
 }
+
+impl TryFrom<usize> for VarInt<u32> {
+    type Error = <u32 as TryFrom<usize>>::Error;
+    fn try_from(value : usize) -> Result<Self, Self::Error> {
+        Ok(Self(<u32 as TryFrom<usize>>::try_from(value)?))
+    }
+}
+impl TryFrom<isize> for VarInt<i32> {
+    type Error = <i32 as TryFrom<isize>>::Error;
+    fn try_from(value : isize) -> Result<Self, Self::Error> {
+        Ok(Self(<i32 as TryFrom<isize>>::try_from(value)?))
+    }
+}
+impl TryFrom<usize> for VarInt<u64> {
+    type Error = <u64 as TryFrom<usize>>::Error;
+    fn try_from(value : usize) -> Result<Self, Self::Error> {
+        Ok(Self(<u64 as TryFrom<usize>>::try_from(value)?))
+    }
+}
+impl TryFrom<isize> for VarInt<i64> {
+    type Error = <i64 as TryFrom<isize>>::Error;
+    fn try_from(value : isize) -> Result<Self, Self::Error> {
+        Ok(Self(<i64 as TryFrom<isize>>::try_from(value)?))
+    }
+}

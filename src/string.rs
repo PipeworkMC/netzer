@@ -23,18 +23,21 @@ impl<Len, LenProtocol : Protocol> Protocol for Utf8<Len, LenProtocol> { }
 
 
 impl<Len, LenProtocol : Protocol> NetDecode<Utf8<Len, LenProtocol>> for String
-where Len : NetDecode<LenProtocol> + Into<usize>
+where Len : NetDecode<LenProtocol> + TryInto<usize>
 {
     type Error = Utf8DecodeError<Len, LenProtocol>;
     async fn decode<R : AsyncRead + Unpin>(mut reader : R) -> Result<Self, Self::Error> {
-        let     len = Len::decode(&mut reader).await.map_err(Utf8DecodeError::Len)?.into();
+        let     len = Len::decode(&mut reader).await
+            .map_err(Utf8DecodeError::Len)?
+            .try_into()
+            .map_err(Utf8DecodeError::LenConvert)?;
         let mut buf = vec![0u8; len];
         reader.read_exact(&mut buf).await.map_err(Utf8DecodeError::Io)?;
         String::from_utf8(buf).map_err(Utf8DecodeError::Utf8)
     }
 }
 impl<Len, LenProtocol : Protocol> NetDecode<Utf8<Len, LenProtocol>> for Cow<'_, str>
-where Len : NetDecode<LenProtocol> + Into<usize>
+where Len : NetDecode<LenProtocol> + TryInto<usize>
 {
     type Error = Utf8DecodeError<Len, LenProtocol>;
     async fn decode<R : AsyncRead + Unpin>(reader : R) -> Result<Self, Self::Error> {
@@ -43,27 +46,31 @@ where Len : NetDecode<LenProtocol> + Into<usize>
 }
 
 pub enum Utf8DecodeError<Len, LenProtocol : Protocol>
-where Len : NetDecode<LenProtocol>
+where Len : NetDecode<LenProtocol> + TryInto<usize>
 {
-    Len(Len::Error),
+    Len(<Len as NetDecode<LenProtocol>>::Error),
+    LenConvert(<Len as TryInto<usize>>::Error),
     Io(io::Error),
     Utf8(FromUtf8Error)
 }
 
 
 impl<Len, LenProtocol : Protocol> NetEncode<Utf8<Len, LenProtocol>> for str
-where Len : NetEncode<LenProtocol> + From<usize>
+where Len : NetEncode<LenProtocol> + TryFrom<usize>
 {
     type Error = Utf8EncodeError<Len, LenProtocol>;
     async fn encode<W : AsyncWrite + Unpin>(&self, mut writer : W) -> Result<(), Self::Error> {
         let b = self.as_bytes();
-        Len::from(b.len()).encode(&mut writer).await.map_err(Utf8EncodeError::Len)?;
+        Len::try_from(b.len())
+            .map_err(Utf8EncodeError::LenConvert)?
+            .encode(&mut writer).await
+            .map_err(Utf8EncodeError::Len)?;
         writer.write_all(b).await.map_err(Utf8EncodeError::Io)?;
         Ok(())
     }
 }
 impl<Len, LenProtocol : Protocol> NetEncode<Utf8<Len, LenProtocol>> for Cow<'_, str>
-where Len : NetEncode<LenProtocol> + From<usize>
+where Len : NetEncode<LenProtocol> + TryFrom<usize>
 {
     type Error = Utf8EncodeError<Len, LenProtocol>;
     async fn encode<W : AsyncWrite + Unpin>(&self, writer : W) -> Result<(), Self::Error> {
@@ -71,7 +78,7 @@ where Len : NetEncode<LenProtocol> + From<usize>
     }
 }
 impl<Len, LenProtocol : Protocol> NetEncode<Utf8<Len, LenProtocol>> for String
-where Len : NetEncode<LenProtocol> + From<usize>
+where Len : NetEncode<LenProtocol> + TryFrom<usize>
 {
     type Error = Utf8EncodeError<Len, LenProtocol>;
     async fn encode<W : AsyncWrite + Unpin>(&self, writer : W) -> Result<(), Self::Error> {
@@ -80,8 +87,9 @@ where Len : NetEncode<LenProtocol> + From<usize>
 }
 
 pub enum Utf8EncodeError<Len, LenProtocol : Protocol>
-where Len : NetEncode<LenProtocol>
+where Len : NetEncode<LenProtocol> + TryFrom<usize>
 {
-    Len(Len::Error),
+    Len(<Len as NetEncode<LenProtocol>>::Error),
+    LenConvert(<Len as TryFrom<usize>>::Error),
     Io(io::Error)
 }
