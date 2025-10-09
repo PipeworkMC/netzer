@@ -4,9 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
-default = [ "derive", "smol" ] # TODO: Remove
+default = [ "derive"] # TODO: Remove
 derive  = [ "dep:netzer-derive" ]
-smol    = [ "dep:smol" ]
 
 [lints.rust]
 unused_parens = "allow"
@@ -17,5 +16,4 @@ path     = "netzer-derive"
 optional = true
 
 [dependencies.smol]
-version  = "2.0"
-optional = true
+version = "2.0"
