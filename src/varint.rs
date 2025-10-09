@@ -167,3 +167,28 @@ impl TryFrom<isize> for VarInt<i64> {
         Ok(Self(<i64 as TryFrom<isize>>::try_from(value)?))
     }
 }
+
+impl TryInto<usize> for VarInt<u32> {
+    type Error = <u32 as TryInto<usize>>::Error;
+    fn try_into(self) -> Result<usize, Self::Error> {
+        <u32 as TryInto<usize>>::try_into(self.0)
+    }
+}
+impl TryInto<isize> for VarInt<i32> {
+    type Error = <i32 as TryInto<isize>>::Error;
+    fn try_into(self) -> Result<isize, Self::Error> {
+        <i32 as TryInto<isize>>::try_into(self.0)
+    }
+}
+impl TryInto<usize> for VarInt<u64> {
+    type Error = <u64 as TryInto<usize>>::Error;
+    fn try_into(self) -> Result<usize, Self::Error> {
+        <u64 as TryInto<usize>>::try_into(self.0)
+    }
+}
+impl TryInto<isize> for VarInt<i64> {
+    type Error = <i64 as TryInto<isize>>::Error;
+    fn try_into(self) -> Result<isize, Self::Error> {
+        <i64 as TryInto<isize>>::try_into(self.0)
+    }
+}

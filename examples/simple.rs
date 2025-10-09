@@ -8,20 +8,21 @@ use netzer::{
 
 #[derive(NetEncode)]
 struct Hello {
-    #[netzer(protocol = "Utf8<VarInt<u32>, Leb128>")]
-    a : &'static str
+    // #[netzer(encode_with = "encode_a")]
+    #[netzer(protocol = "BigEndian", convert = "VarInt<u64>")]
+    a : usize
 }
 async fn encode_a<W : netzer::AsyncWrite>(a : &u64, mut w : W) -> Result<(), std::io::Error> {
     write!(w, "{a}").await
 }
 
 
-#[derive(NetEncode)]
-#[netzer(ordinal, protocol = "BigEndian")]
+// #[derive(NetEncode)]
+// #[netzer(ordinal, protocol = "BigEndian")]
 #[repr(u8)]
 enum GameMode {
     Survival(
-        #[netzer(protocol = "BigEndian")]
+        // #[netzer(protocol = "BigEndian")]
         u32
     ) = 0,
     Creative  = 1,

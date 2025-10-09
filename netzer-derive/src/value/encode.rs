@@ -16,9 +16,9 @@ pub(crate) fn derive_netencode_value(
     error_decl    : &mut DeriveNetEncodeErrorDecl
 ) -> TokenStream {
     let value = { if let Some(convert) = &opts.convert {
-        quote!{ ::core::convert::Into::<#convert>::into(#expr) }
+        quote!{ ::core::convert::Into::<#convert>::into(#expr.clone()) }
     } else if let Some(repr) = repr {
-        quote!{ ::core::convert::Into::<#repr>::into(#expr) }
+        quote!{ ::core::convert::Into::<#repr>::into(#expr.clone()) }
     } else {
         quote!{ #expr }
     } };
