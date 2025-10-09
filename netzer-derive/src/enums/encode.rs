@@ -1,6 +1,7 @@
 use crate::{
     value::encode::derive_netencode_value,
     structs::encode::derive_netencode_struct_fields,
+    enums::EnumDeriveAttrArgs,
     error::DeriveNetEncodeErrorDecl,
     util::ident_or
 };
@@ -20,7 +21,7 @@ use darling::FromDeriveInput;
 pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnum) -> (TokenStream, DeriveNetEncodeErrorDecl,) {
     let mut error_decl = DeriveNetEncodeErrorDecl::default();
 
-    let args = { match (super::EnumDeriveAttrArgs::from_derive_input(input)) {
+    let args = { match (EnumDeriveAttrArgs::from_derive_input(input)) {
         Ok(args) => args,
         Err(err) => { return (err.write_errors(), error_decl,); }
     } };

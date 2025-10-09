@@ -22,9 +22,9 @@ enum GameMode {
         #[netzer(protocol = "BigEndian")]
         u32
     ) = 0,
-    Creative      = 1,
-    Adventure     = 2,
-    Spectator     = 3
+    Creative  = 1,
+    Adventure = 2,
+    Spectator = 3
 }
 
 // #[derive(NetEncode)]

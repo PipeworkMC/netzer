@@ -1,4 +1,4 @@
-use super::ValueAttrArgs;
+use crate::value::ValueAttrArgs;
 use proc_macro2::TokenStream;
 use syn::Type;
 use quote::quote;

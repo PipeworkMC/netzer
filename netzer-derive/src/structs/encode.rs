@@ -1,5 +1,9 @@
 use crate::{
     value::encode::derive_netencode_value,
+    structs::{
+        StructDeriveAttrArgs,
+        StructFieldAttrArgs
+    },
     error::DeriveNetEncodeErrorDecl,
     util::ident_or
 };
@@ -15,7 +19,7 @@ use darling::{ FromDeriveInput, FromField };
 pub(crate) fn derive_netencode_struct_encode(input : &DeriveInput, data : &DataStruct) -> (TokenStream, DeriveNetEncodeErrorDecl,) {
     let mut error_decl = DeriveNetEncodeErrorDecl::default();
 
-    let _args = { match (super::StructDeriveAttrArgs::from_derive_input(input)) {
+    let _args = { match (StructDeriveAttrArgs::from_derive_input(input)) {
         Ok(args) => args,
         Err(err) => { return (err.write_errors(), error_decl,); }
     } };
@@ -38,7 +42,7 @@ pub(crate) fn derive_netencode_struct_encode(input : &DeriveInput, data : &DataS
 pub(crate) fn derive_netencode_struct_fields(fields : &Fields) -> TokenStream {
     let mut encodes = quote!{ };
     for (i, field,) in fields.into_iter().enumerate() {
-        let args = { match (super::StructFieldAttrArgs::from_field(field)) {
+        let args = { match (StructFieldAttrArgs::from_field(field)) {
             Ok(args) => args,
             Err(err) => { return err.write_errors(); }
         } };
