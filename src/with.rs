@@ -49,9 +49,9 @@ pub trait AsyncDecodeWith<T, R : AsyncRead + Unpin> {
 }
 
 #[cfg(feature = "smol")]
-impl<Error, T, R : AsyncRead + Unpin, F : FnMut(R) -> Result<T, Error>> AsyncDecodeWith<T, R> for F {
+impl<Error, T, R : AsyncRead + Unpin, F : AsyncFnMut(R) -> Result<T, Error>> AsyncDecodeWith<T, R> for F {
     type Error = Error;
-    async fn async_decode(&mut self, reader : R) -> Result<T, Self::Error> {
+    fn async_decode(&mut self, reader : R) -> impl Future<Output = Result<T, Self::Error>> {
         (self)(reader)
     }
 }
