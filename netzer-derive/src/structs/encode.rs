@@ -31,7 +31,7 @@ pub(crate) fn derive_netencode_struct_encode(input : &DeriveInput, data : &DataS
         Fields::Unnamed(_) => quote!{ ( #field_idents ) },
         Fields::Unit       => quote!{ },
     } };
-    let encode_fields = derive_netencode_struct_fields(&data.fields);
+    let encode_fields = derive_netencode_struct_fields(&data.fields, &mut error_decl);
     (quote!{
         let Self #destructure = &self;
         #encode_fields
@@ -39,7 +39,7 @@ pub(crate) fn derive_netencode_struct_encode(input : &DeriveInput, data : &DataS
 }
 
 
-pub(crate) fn derive_netencode_struct_fields(fields : &Fields) -> TokenStream {
+pub(crate) fn derive_netencode_struct_fields(fields : &Fields, error_decl : &mut DeriveNetEncodeErrorDecl) -> TokenStream {
     let mut encodes = quote!{ };
     for (i, field,) in fields.into_iter().enumerate() {
         let args = { match (StructFieldAttrArgs::from_field(field)) {
@@ -48,7 +48,7 @@ pub(crate) fn derive_netencode_struct_fields(fields : &Fields) -> TokenStream {
         } };
 
         let ident = ident_or(i, field);
-        encodes.extend(derive_netencode_value(&args.value, None, &field.ty, quote!{ #ident }));
+        encodes.extend(derive_netencode_value(&args.value, None, &field.ty, quote!{ #ident }, error_decl));
     }
     encodes
 }

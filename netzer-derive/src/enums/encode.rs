@@ -77,9 +77,10 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
                         PathSegment { ident : Ident::new("core", Span::call_site()), arguments : PathArguments::None },
                         PathSegment { ident : Ident::new("usize", Span::call_site()), arguments : PathArguments::None }
                     ]) } }),
-                    quote!{ #discriminant }
+                    quote!{ #discriminant },
+                    &mut error_decl
                 );
-                let encode_fields = derive_netencode_struct_fields(fields);
+                let encode_fields = derive_netencode_struct_fields(fields, &mut error_decl);
                 match_body.extend(quote!{ Self::#ident #destructure => {
                     #ordinal_encode
                     #encode_fields
