@@ -40,6 +40,20 @@ pub trait NetEncode<P : Protocol> {
     type Error;
     fn encode<W : AsyncWrite>(&self, writer : W) -> impl Future<Output = Result<(), Self::Error>>;
 }
+impl<P : Protocol, T : NetEncode<P>> NetEncode<P> for &T {
+    type Error = T::Error;
+    #[inline]
+    fn encode<W : AsyncWrite>(&self, writer : W) -> impl Future<Output = Result<(), Self::Error>> {
+        T::encode(self, writer)
+    }
+}
+impl<P : Protocol, T : NetEncode<P>> NetEncode<P> for &mut T {
+    type Error = T::Error;
+    #[inline]
+    fn encode<W : AsyncWrite>(&self, writer : W) -> impl Future<Output = Result<(), Self::Error>> {
+        T::encode(self, writer)
+    }
+}
 
 pub trait SyncNetEncode<P : Protocol> : NetEncode<P> {
     fn sync_encode<W : Write>(&self, writer : W) -> Result<(), Self::Error>;

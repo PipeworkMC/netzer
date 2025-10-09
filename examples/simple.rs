@@ -14,18 +14,18 @@ async fn encode_a<W : netzer::AsyncWrite>(a : &u64, mut w : W) -> Result<(), std
 }
 
 
-// #[derive(NetEncode)]
-// #[netzer(ordinal, encode_as = "BigEndian", into = "u8")]
-// #[repr(u8)]
-// enum GameMode {
-//     Survival(
-//         #[netzer(encode_as = "BigEndian")]
-//         u32
-//     ) = 0,
-//     Creative      = 1,
-//     Adventure     = 2,
-//     Spectator     = 3
-// }
+#[derive(NetEncode)]
+#[netzer(ordinal, protocol = "BigEndian", convert = "u8")]
+#[repr(u8)]
+enum GameMode {
+    Survival(
+        #[netzer(protocol = "BigEndian")]
+        u32
+    ) = 0,
+    Creative      = 1,
+    Adventure     = 2,
+    Spectator     = 3
+}
 
 // #[derive(NetEncode)]
 // #[netzer(nominal, encode_as = "Utf8<BigEndian>", into = "&str")]

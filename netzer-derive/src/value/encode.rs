@@ -5,7 +5,7 @@ use quote::quote;
 
 pub(crate) fn derive_netencode_value(opts : &ValueAttrArgs, expr : TokenStream) -> TokenStream {
     let value = { if let Some(convert) = &opts.convert {
-        quote!{ ::core::convert::Into<#convert>::into(#expr) }
+        quote!{ ::core::convert::Into::<#convert>::into(#expr) }
     } else {
         quote!{ #expr }
     } };
@@ -16,19 +16,19 @@ pub(crate) fn derive_netencode_value(opts : &ValueAttrArgs, expr : TokenStream) 
         (None, Some(function),) => { quote!{
             ::netzer::EncodeWith::<_, _>::encode(
                 &mut #function,
-                #value,
+                &#value,
                 &mut netzer_derive_netencode_writer
             ).await?;
         } },
 
         (Some(protocol), None,) => { quote!{
             ::netzer::NetEncode::<#protocol>
-                ::encode(#value, &mut netzer_derive_netencode_writer).await?;
+                ::encode(&#value, &mut netzer_derive_netencode_writer).await?;
         } },
 
         (None, None,) => { quote!{
             ::netzer::NetEncode::<NetzerDeriveNetEncodeProtocol>
-                ::encode(#value, &mut netzer_derive_netencode_writer).await?;
+                ::encode(&#value, &mut netzer_derive_netencode_writer).await?;
         } }
 
     }
