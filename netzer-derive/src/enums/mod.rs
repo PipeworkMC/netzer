@@ -21,5 +21,5 @@ struct EnumDeriveAttrArgs {
 #[darling(attributes(netzer))]
 struct EnumVariantAttrArgs {
     #[darling(default)]
-    rename : Option<String> // TODO: Inapplicable in ordinal enums
+    rename : Option<String>
 }

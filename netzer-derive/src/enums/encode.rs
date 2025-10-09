@@ -1,7 +1,10 @@
 use crate::{
     value::encode::derive_netencode_value,
     structs::encode::derive_netencode_struct_fields,
-    enums::EnumDeriveAttrArgs,
+    enums::{
+        EnumDeriveAttrArgs,
+        EnumVariantAttrArgs
+    },
     error::DeriveNetEncodeErrorDecl,
     util::ident_or
 };
@@ -15,7 +18,7 @@ use syn::{
     spanned::Spanned as _,
 };
 use quote::{ quote, quote_spanned };
-use darling::FromDeriveInput;
+use darling::{ FromDeriveInput, FromVariant };
 
 
 pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnum) -> (TokenStream, DeriveNetEncodeErrorDecl,) {
@@ -43,13 +46,21 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
 
     let mut match_body = quote!{ };
     match ((args.ordinal, args.nominal,)) {
-        (false, false,) => { return (quote!{ compile_error!("enum must be encoded as `ordinal` or `nominal`"); }, error_decl); },
+        (false, false,) => { return (quote!{ compile_error!("enum must have `#[netzer(ordinal)]` or `#[netzer(nominal)]`"); }, error_decl); },
         (true, true,) => { return (quote!{ compile_error!("enum can not be encoded as both `ordinal` and `nominal`"); }, error_decl); },
 
         (true, false,) => {
             for variant @ Variant { ident, fields, discriminant, .. } in &data.variants {
+                let variant_args = { match (EnumVariantAttrArgs::from_variant(variant)) {
+                    Ok(variant_args) => variant_args,
+                    Err(err) => { return (err.write_errors(), error_decl,); }
+                } };
+                if (variant_args.rename.is_some()) {
+                    return (quote!{ compile_error!("variant in ordinal-encoded enum can not be renamed"); }, error_decl);
+                }
+
                 let Some((_, discriminant,)) = discriminant
-                    else { return (quote_spanned!{ variant.span() => compile_error!("`ordinal` encoded enum must have a discriminant"); }, error_decl); };
+                    else { return (quote_spanned!{ variant.span() => compile_error!("ordinal-encoded enum must have a discriminant"); }, error_decl); };
                 let field_idents = fields.iter().enumerate().map(|(i, field,)| ident_or(i, field));
                 let field_idents = quote!{ #( #field_idents , )* };
                 let destructure = { match (fields) {
