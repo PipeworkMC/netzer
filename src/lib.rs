@@ -26,6 +26,10 @@ pub mod prelude {
         NetDecode,
         SyncNetDecode as _
     };
+    pub use smol::io::{
+        AsyncWriteExt as _,
+        AsyncReadExt as _
+    };
 }
 
 

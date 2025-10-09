@@ -39,6 +39,26 @@ pub fn derive_netencode(item : TokenStream) -> TokenStream {
 
 
 #[proc_macro_derive(NetDecode, attributes(netzer))]
-pub fn derive_netdecode(_item : TokenStream) -> TokenStream {
-    todo!("derive NetDecode")
+pub fn derive_netdecode(item : TokenStream) -> TokenStream {
+    let input         = parse_macro_input!(item as DeriveInput);
+    // let function_body = (match (&input.data) {
+    //     Data::Struct(data) => structs ::encode::derive_netencode_struct_decode (&input, data),
+    //     Data::Enum(data)   => enums   ::encode::derive_netencode_enum_decode   (&input, data),
+    //     Data::Union(_)     => { return quote!{ compile_error!("NetDecode can not be derived for unions"); }.into(); },
+    // });
+    let function_body = quote!{ compile_error!("TODO"); };
+
+    let ident = &input.ident;
+    quote!{
+        impl<NetzerDeriveNetDecodeNetFormat : ::netzer::NetFormat>
+            ::netzer::NetDecode<NetzerDeriveNetDecodeNetFormat>
+            for #ident
+        {
+            #[allow(clippy::clone_on_copy, clippy::needless_borrow)]
+            async fn decode<NetzerDeriveNetDecodeRead : ::netzer::AsyncRead>(&self, mut netzer_derive_netdecode_reader : NetzerDeriveDecoderead) -> ::netzer::Result {
+                #function_body
+                Ok(())
+            }
+        }
+    }.into()
 }

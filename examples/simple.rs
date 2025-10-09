@@ -1,15 +1,10 @@
-use netzer::{
-    NetEncode,
-    numeric::BigEndian,
-    string::Utf8,
-    varint::{ VarInt, Leb128 },
-    Result
-};
+use netzer::prelude::*;
+use netzer::Result;
 
 
 #[derive(NetEncode)]
 pub struct Hello {
-    #[netzer(format_with = "encode_a")]
+    #[netzer(encode_with = "encode_a", decode_with = "decode_a")]
     a : u64,
     #[netzer(format = "Leb128", convert = "VarInt<i64>")]
     b : i32,
@@ -17,7 +12,13 @@ pub struct Hello {
     c : String
 }
 async fn encode_a<W : netzer::AsyncWrite>(a : &u64, mut w : W) -> Result {
-    write!(w, "{a}").await
+    w.write_all(&(a.wrapping_add(1)).to_le_bytes()).await?;
+    Ok(())
+}
+async fn decode_a<R : netzer::AsyncRead>(mut r : R) -> Result<u64> {
+    let mut buf = [0u8; size_of::<u64>()];
+    r.read_exact(&mut buf).await?;
+    Ok(u64::from_le_bytes(buf).wrapping_sub(1))
 }
 
 

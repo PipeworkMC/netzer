@@ -35,7 +35,7 @@ pub(crate) fn derive_netencode_value(
 
     } };
 
-    match ((&opts.format, &opts.format_with,)) {
+    match ((&opts.format, &opts.encode_with,)) {
         (Some(_), Some(_),) => { return quote!{ compile_error!("value may not have both `format` and `format_with`"); }; },
 
         (Some(spanned), None,) => {
@@ -47,10 +47,10 @@ pub(crate) fn derive_netencode_value(
         },
 
         (None, Some(spanned),) => {
-            let function = &**spanned;
+            let encode_with = &**spanned;
             quote_spanned!{ spanned.span() =>
                 ::netzer::EncodeWith::<_, _>::encode(
-                    &mut #function,
+                    &mut #encode_with,
                     &#value,
                     &mut netzer_derive_netencode_writer
                 ).await?;
