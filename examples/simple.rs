@@ -8,11 +8,13 @@ use netzer::{
 
 
 #[derive(NetEncode)]
-struct Hello {
+pub struct Hello {
     #[netzer(encode_with = "encode_a")]
     a : u64,
-    #[netzer(protocol = "Leb128", try_convert = "VarInt<i64>")]
-    b : i32
+    #[netzer(protocol = "Leb128", convert = "VarInt<i64>")]
+    b : i32,
+    #[netzer(protocol = "Utf8<VarInt<u32>, Leb128>")]
+    c : String
 }
 async fn encode_a<W : netzer::AsyncWrite>(a : &u64, mut w : W) -> Result {
     write!(w, "{a}").await
@@ -22,7 +24,7 @@ async fn encode_a<W : netzer::AsyncWrite>(a : &u64, mut w : W) -> Result {
 #[derive(NetEncode)]
 #[netzer(ordinal, protocol = "BigEndian")]
 #[repr(u8)]
-enum GameMode {
+pub enum GameMode {
     Survival(
         #[netzer(protocol = "BigEndian")]
         u32

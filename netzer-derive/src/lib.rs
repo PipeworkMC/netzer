@@ -28,6 +28,7 @@ pub fn derive_netencode(item : TokenStream) -> TokenStream {
             ::netzer::NetEncode<NetzerDeriveNetEncodeProtocol>
             for #ident
         {
+            #[allow(clippy::clone_on_copy, clippy::needless_borrow)]
             async fn encode<NetzerDeriveNetEncodeWrite : ::netzer::AsyncWrite>(&self, mut netzer_derive_netencode_writer : NetzerDeriveNetEncodeWrite) -> ::netzer::Result {
                 #function_body
                 Ok(())
