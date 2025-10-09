@@ -26,7 +26,9 @@ pub fn derive_netencode(item : TokenStream) -> TokenStream {
     let vis   = input.vis;
     let ident = &input.ident;
 
-    let error_ident = error_decl.ident;
+    let error_ident          = error_decl.ident;
+    let error_variant_idents = error_decl.variants.iter().map(|(v, _,)| v);
+    let error_variant_types  = error_decl.variants.iter().map(|(_, v,)| v);
 
     quote!{
 
@@ -41,7 +43,9 @@ pub fn derive_netencode(item : TokenStream) -> TokenStream {
             }
         }
 
-        #vis enum #error_ident {}
+        #vis enum #error_ident {
+            #( #error_variant_idents(#error_variant_types) , )*
+        }
 
     }.into()
 }

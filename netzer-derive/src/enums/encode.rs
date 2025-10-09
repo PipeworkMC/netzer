@@ -21,6 +21,7 @@ use syn::{
 };
 use quote::{ quote, quote_spanned };
 use darling::{ FromDeriveInput, FromVariant };
+use convert_case::{ Case, Casing };
 
 
 pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnum) -> (TokenStream, DeriveNetEncodeErrorDecl,) {
@@ -70,6 +71,7 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
                     Fields::Unnamed(_) => quote!{ ( #field_idents ) },
                     Fields::Unit       => quote!{ },
                 } };
+                let variant_error = ident.to_string().to_case(Case::Pascal);
                 let ordinal_encode = derive_netencode_value(
                     &args.value,
                     repr.as_ref(),
@@ -78,9 +80,10 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
                         PathSegment { ident : Ident::new("usize", Span::call_site()), arguments : PathArguments::None }
                     ]) } }),
                     quote!{ #discriminant },
+                    Ident::new(&variant_error, ident.span()),
                     &mut error_decl
                 );
-                let encode_fields = derive_netencode_struct_fields(fields, &mut error_decl);
+                let encode_fields = derive_netencode_struct_fields(fields, variant_error, &mut error_decl);
                 match_body.extend(quote!{ Self::#ident #destructure => {
                     #ordinal_encode
                     #encode_fields

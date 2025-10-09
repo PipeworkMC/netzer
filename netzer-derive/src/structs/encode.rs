@@ -10,10 +10,13 @@ use crate::{
 use proc_macro2::TokenStream;
 use syn::{
     DeriveInput, DataStruct,
-    Fields
+    Fields,
+    Ident,
+    spanned::Spanned as _
 };
 use quote::quote;
 use darling::{ FromDeriveInput, FromField };
+use convert_case::{ Case, Casing };
 
 
 pub(crate) fn derive_netencode_struct_encode(input : &DeriveInput, data : &DataStruct) -> (TokenStream, DeriveNetEncodeErrorDecl,) {
@@ -31,7 +34,7 @@ pub(crate) fn derive_netencode_struct_encode(input : &DeriveInput, data : &DataS
         Fields::Unnamed(_) => quote!{ ( #field_idents ) },
         Fields::Unit       => quote!{ },
     } };
-    let encode_fields = derive_netencode_struct_fields(&data.fields, &mut error_decl);
+    let encode_fields = derive_netencode_struct_fields(&data.fields, String::new(), &mut error_decl);
     (quote!{
         let Self #destructure = &self;
         #encode_fields
@@ -39,7 +42,7 @@ pub(crate) fn derive_netencode_struct_encode(input : &DeriveInput, data : &DataS
 }
 
 
-pub(crate) fn derive_netencode_struct_fields(fields : &Fields, error_decl : &mut DeriveNetEncodeErrorDecl) -> TokenStream {
+pub(crate) fn derive_netencode_struct_fields(fields : &Fields, error_variant_prefix : String, error_decl : &mut DeriveNetEncodeErrorDecl) -> TokenStream {
     let mut encodes = quote!{ };
     for (i, field,) in fields.into_iter().enumerate() {
         let args = { match (StructFieldAttrArgs::from_field(field)) {
@@ -48,7 +51,15 @@ pub(crate) fn derive_netencode_struct_fields(fields : &Fields, error_decl : &mut
         } };
 
         let ident = ident_or(i, field);
-        encodes.extend(derive_netencode_value(&args.value, None, &field.ty, quote!{ #ident }, error_decl));
+        let error_variant = field.ident.as_ref().map_or_else(|| format!("E{i}"), |i| i.to_string().to_case(Case::Pascal));
+        encodes.extend(derive_netencode_value(
+            &args.value,
+            None,
+            &field.ty,
+            quote!{ #ident },
+            Ident::new(&format!("{error_variant_prefix}{error_variant}"), field.span()),
+            error_decl
+        ));
     }
     encodes
 }

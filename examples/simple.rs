@@ -2,13 +2,13 @@ use netzer::{
     NetEncode,
     numeric::BigEndian,
     string::Utf8,
-    // varint::{ VarInt, Leb128 }
+    varint::{ VarInt, Leb128 }
 };
 
 
 #[derive(NetEncode)]
 struct Hello {
-    #[netzer(protocol = "Utf8<_, _>")]
+    #[netzer(protocol = "Utf8<VarInt<u32>, Leb128>")]
     a : &'static str
 }
 async fn encode_a<W : netzer::AsyncWrite>(a : &u64, mut w : W) -> Result<(), std::io::Error> {
@@ -30,7 +30,7 @@ enum GameMode {
 }
 
 // #[derive(NetEncode)]
-// #[netzer(nominal, encode_as = "Utf8<BigEndian>", into = "&str")]
+// #[netzer(nominal, protocol = "Utf8<BigEndian>", convert = "&str")]
 // enum DimensionType {
 //     #[netzer(rename = "minecraft:overworld")]
 //     Overworld,
