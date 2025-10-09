@@ -43,7 +43,7 @@ pub fn derive_netencode(item : TokenStream) -> TokenStream {
             for #ident
         {
             type Error = #error_type;
-            fn encode<NetzerDeriveNetEncodeWrite : ::std::io::Write>(&self, mut netzer_derive_netencode_writer : NetzerDeriveNetEncodeWrite) -> ::core::result::Result<(), <Self as ::netzer::NetEncode<NetzerDeriveNetEncodeProtocol>>::Error> {
+            async fn encode<NetzerDeriveNetEncodeWrite : ::netzer::AsyncWrite + ::core::marker::Unpin>(&self, mut netzer_derive_netencode_writer : NetzerDeriveNetEncodeWrite) -> ::core::result::Result<(), <Self as ::netzer::NetEncode<NetzerDeriveNetEncodeProtocol>>::Error> {
                 #function_body
                 Ok(())
             }

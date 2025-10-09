@@ -18,17 +18,17 @@ pub(crate) fn derive_netencode_value(opts : &ValueAttrArgs, expr : TokenStream) 
                 &mut #function,
                 #value,
                 &mut netzer_derive_netencode_writer
-            )?;
+            ).await?;
         } },
 
         (Some(protocol), None,) => { quote!{
             ::netzer::NetEncode::<#protocol>
-                ::encode(#value, &mut netzer_derive_netencode_writer)?;
+                ::encode(#value, &mut netzer_derive_netencode_writer).await?;
         } },
 
         (None, None,) => { quote!{
             ::netzer::NetEncode::<NetzerDeriveNetEncodeProtocol>
-                ::encode(#value, &mut netzer_derive_netencode_writer)?;
+                ::encode(#value, &mut netzer_derive_netencode_writer).await?;
         } }
 
     }

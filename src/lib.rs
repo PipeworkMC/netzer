@@ -1,9 +1,26 @@
-use std::io::{
-    Write,
-    Read
+use core::fmt::Arguments;
+use std::{
+    borrow::Cow,
+    io::{ self, Write, Read }
 };
-pub use smol::io::{ AsyncWrite, AsyncRead };
-use smol::io::AssertAsync;
+use smol::io::{
+    AsyncWriteExt,
+    AssertAsync
+};
+
+
+pub trait AsyncWrite : smol::io::AsyncWrite + Unpin {
+    fn write_fmt(&mut self, arguments : Arguments<'_>) -> impl Future<Output = Result<(), io::Error>>;
+}
+impl<T : smol::io::AsyncWrite + Unpin> AsyncWrite for T {
+    async fn write_fmt(&mut self, arguments : Arguments<'_>) -> Result<(), io::Error> {
+        let s = arguments.as_str().map_or_else(|| Cow::Owned(arguments.to_string()), Cow::Borrowed);
+        self.write_all(s.as_bytes()).await
+    }
+}
+
+pub trait AsyncRead : smol::io::AsyncRead + Unpin { }
+impl<T : smol::io::AsyncRead + Unpin> AsyncRead for T { }
 
 
 pub mod numeric;
@@ -17,12 +34,11 @@ pub use with::*;
 pub trait Protocol { }
 
 
-
 pub use netzer_derive::NetEncode;
 
 pub trait NetEncode<P : Protocol> {
     type Error;
-    fn encode<W : AsyncWrite + Unpin>(&self, writer : W) -> impl Future<Output = Result<(), Self::Error>>;
+    fn encode<W : AsyncWrite>(&self, writer : W) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
 pub trait SyncNetEncode<P : Protocol> : NetEncode<P> {
@@ -39,7 +55,7 @@ impl<P : Protocol, T : NetEncode<P>> SyncNetEncode<P> for T {
 
 pub trait NetDecode<P : Protocol> : Sized {
     type Error;
-    fn decode<R : AsyncRead + Unpin>(reader : R) -> impl Future<Output = Result<Self, Self::Error>>;
+    fn decode<R : AsyncRead>(reader : R) -> impl Future<Output = Result<Self, Self::Error>>;
 }
 
 pub trait SyncNetDecode<P : Protocol> : NetDecode<P> + Sized {
