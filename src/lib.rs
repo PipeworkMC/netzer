@@ -131,3 +131,10 @@ impl Display for BadEnumName {
         write!(f, "bad enum name {:?}", self.0)
     }
 }
+
+
+#[doc(hidden)]
+pub mod __private {
+    pub use usize;
+    pub use str;
+}

@@ -66,7 +66,11 @@ pub(crate) fn derive_netdecode_enum(input : &DeriveInput, data : &DataEnum) -> T
                     leading_colon : Some(Token![::](Span::call_site())),
                     segments      : Punctuated::from_iter([
                         PathSegment {
-                            ident     : Ident::new("core", Span::call_site()),
+                            ident     : Ident::new("netzer", Span::call_site()),
+                            arguments : PathArguments::None
+                        },
+                        PathSegment {
+                            ident     : Ident::new("__private", Span::call_site()),
                             arguments : PathArguments::None
                         },
                         PathSegment {
@@ -137,7 +141,11 @@ pub(crate) fn derive_netdecode_enum(input : &DeriveInput, data : &DataEnum) -> T
                             leading_colon : Some(Token![::](Span::call_site())),
                             segments      : Punctuated::from_iter([
                                 PathSegment {
-                                    ident     : Ident::new("core", Span::call_site()),
+                                    ident     : Ident::new("netzer", Span::call_site()),
+                                    arguments : PathArguments::None
+                                },
+                                PathSegment {
+                                    ident     : Ident::new("__private", Span::call_site()),
                                     arguments : PathArguments::None
                                 },
                                 PathSegment {
