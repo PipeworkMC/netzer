@@ -12,6 +12,9 @@ use syn::{
 use quote::quote;
 
 
+mod where_clause;
+
+
 pub(crate) fn ident_or(i : usize, field : &Field) -> Ident {
     field.ident.clone().unwrap_or_else(|| Ident::new(&format!("a{i}"), field.span()))
 }
@@ -22,7 +25,10 @@ pub(crate) fn finalise_encode(ident : &Ident, function_body : TokenStream, mut g
         where_token : Token![where](Span::call_site()),
         predicates  : Punctuated::new()
     });
-    where_clause.predicates.extend(added_where_clause.predicates);
+    where_clause.predicates.extend(added_where_clause.predicates.iter().cloned().map(|mut predicate| {
+        where_clause::make_where_predicate_lifetimes_explicit(&mut predicate);
+        predicate
+    }));
 
     let (_, type_generics, where_clause,) = generics.split_for_impl();
     let mut impl_generics = generics.params.clone();
