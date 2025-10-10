@@ -4,11 +4,13 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
-default = [ "derive"] # TODO: Remove
-derive  = [ "dep:netzer-derive" ]
+default  = [ "derive", "unstable" ] # TODO: Remove
+derive   = [ "dep:netzer-derive" ]
+unstable = [ ]
 
 [lints.rust]
 unused_parens = "allow"
+# missing_docs  = "deny" # TODO
 
 
 [dependencies.netzer-derive]

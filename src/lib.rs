@@ -1,3 +1,6 @@
+#![cfg_attr(feature = "unstable", feature(never_type))]
+
+
 use core::{
     error::Error as StdError,
     fmt::Arguments
@@ -17,9 +20,11 @@ pub mod prelude {
     pub use crate::{
         AsyncWrite as _,
         AsyncRead as _,
-        numeric::{ BigEndian, LittleEndian },
-        string::Utf8,
-        varint::{ VarInt, Leb128 },
+        impls::{
+            numeric::{ BigEndian, LittleEndian },
+            string::Utf8,
+            varint::{ VarInt, Leb128 }
+        },
         EncodeWith,
         DecodeWith,
         NetEncode,
@@ -49,9 +54,8 @@ pub trait AsyncRead : smol::io::AsyncRead + Unpin { }
 impl<T : smol::io::AsyncRead + Unpin> AsyncRead for T { }
 
 
-pub mod numeric;
-pub mod string;
-pub mod varint;
+mod impls;
+pub use impls::*;
 
 mod with;
 pub use with::*;

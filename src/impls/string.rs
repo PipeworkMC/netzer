@@ -12,7 +12,6 @@ use smol::io::{
 };
 
 
-#[non_exhaustive]
 pub struct Utf8<Len, LenF : NetFormat> {
     _marker : PhantomData<(Len, LenF,)>
 }
