@@ -20,33 +20,33 @@ pub(crate) fn derive_netencode_value(
     where_clause : &mut WhereClause
 ) -> TokenStream {
 
-    let (value, bounded_ty,) = { match ((&opts.convert, &opts.try_convert,)) {
-        (Some(_), Some(_),) => { return quote!{ compile_error!("value may not have both `convert` and `try_convert`"); }; },
+    let (into_trait, into_method, into_after) = {
+        if (opts.try_into.is_present()) {
+            (quote!{ ::core::convert::TryInto }, quote!{ try_into }, quote!{ ? },)
+        } else {
+            (quote!{ ::core::convert::Into }, quote!{ into }, quote!{ },)
+        }
+    };
 
-        (Some(spanned), None,) => {
+    let (value, bounded_ty,) = { match (&opts.convert) {
+        Some(spanned) => {
             let convert = &**spanned;
             (
-                quote_spanned!{ spanned.span() => ::core::convert::Into::<#convert>::into(#expr.clone()) },
+                quote_spanned!{ spanned.span() => #into_trait::<#convert>::#into_method(#expr.clone())#into_after },
                 convert,
             )
         },
 
-        (None, Some(spanned),) => {
-            let try_convert = &**spanned;
-            (
-                quote_spanned!{ spanned.span() => ::core::convert::TryInto::<#try_convert>::try_into(#expr.clone())? },
-                try_convert,
-            )
-        },
-
-        (None, None,) => {
+        None => {
             if let Some(repr) = repr { (
-                quote_spanned!{ repr.span() => ::core::convert::Into::<#repr>::into(#expr.clone()) },
+                quote_spanned!{ repr.span() => #into_trait::<#repr>::#into_method(#expr.clone())#into_after },
                 repr,
-            ) } else { (
-                quote!{ #expr },
-                ty,
-            ) }
+            ) } else {
+                if (opts.try_into.is_present()) {
+                    return quote_spanned!{ opts.try_into.span() => compile_error!("`value may not have #[netzer(try_into)]` without a conversion type"); };
+                }
+                (expr, ty,)
+            }
         }
 
     } };

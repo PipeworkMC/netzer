@@ -16,9 +16,9 @@ pub(crate) mod decode;
 #[darling(attributes(netzer))]
 struct EnumDeriveAttrArgs {
     #[darling(default)]
-    ordinal : SpannedValue<Flag>,
+    ordinal : Flag,
     #[darling(default)]
-    nominal : SpannedValue<Flag>,
+    nominal : Flag,
 
     #[darling(flatten)]
     value : ValueAttrArgs

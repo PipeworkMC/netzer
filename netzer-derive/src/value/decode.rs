@@ -19,13 +19,9 @@ pub(crate) fn derive_netdecode_value(
     where_clause : &mut WhereClause
 ) -> TokenStream {
 
-    let bounded_ty = { match ((&opts.convert, &opts.try_convert,)) {
-        (Some(_), Some(_),) => { return quote!{ compile_error!("value may not have both `convert` and `try_convert`"); }; },
-        (Some(spanned), None,) => spanned.as_ref(),
-        (None, Some(spanned),) => spanned.as_ref(),
-        (None, None,) => {
-            if let Some(repr) = repr { repr } else { ty }
-        }
+    let bounded_ty = { match (&opts.convert) {
+        Some(spanned) => spanned.as_ref(),
+        None => { if let Some(repr) = repr { repr } else { ty } }
     } };
 
     let decode;
@@ -116,27 +112,29 @@ pub(crate) fn derive_netdecode_value(
 
     }
 
-    let value = { match ((&opts.convert, &opts.try_convert,)) {
-        (Some(_), Some(_),) => { return quote!{ compile_error!("value may not have both `convert` and `try_convert`"); }; },
+    let (from_trait, from_method, from_after,) = {
+        if (opts.try_from.is_present()) {
+            (quote!{ ::core::convert::TryFrom }, quote!{ try_from }, quote!{ ? },)
+        } else {
+            (quote!{ ::core::convert::From }, quote!{ from }, quote!{ },)
+        }
+    };
 
-        (Some(spanned), None,) => {
+    let value = { match (&opts.convert) {
+        Some(spanned) => {
             let convert = &**spanned;
-            quote_spanned!{ spanned.span() => ::core::convert::From::<#convert>::from(#decode) }
+            quote_spanned!{ spanned.span() => #from_trait::<#convert>::#from_method(#decode)#from_after }
         },
-
-        (None, Some(spanned),) => {
-            let try_convert = &**spanned;
-            quote_spanned!{ spanned.span() => ::core::convert::TryFrom::<#try_convert>::try_from(#decode)? }
-        },
-
-        (None, None,) => {
+        None => {
             if let Some(repr) = repr {
-                quote_spanned!{ repr.span() => ::core::convert::From::<#repr>::from(#decode) }
+                quote_spanned!{ repr.span() => #from_trait::<#repr>::#from_method(#decode)#from_after }
             } else {
-                quote!{ #decode }
+                if (opts.try_from.is_present()) {
+                    return quote_spanned!{ opts.try_from.span() => compile_error!("`value may not have #[netzer(try_from)]` without a conversion type"); };
+                }
+                decode
             }
         }
-
     } };
 
     if let Some(bound) = bound {

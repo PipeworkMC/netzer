@@ -13,7 +13,7 @@ pub struct InheritTest {
 pub struct Hello {
     #[netzer(encode_with = "encode_a", decode_with = "decode_a")]
     a : u64,
-    #[netzer(format = "Leb128", try_convert = "VarInt<i64>")]
+    #[netzer(format = "Leb128", convert = "VarInt<i64>", try_from)]
     b : i32,
     #[netzer(format = "Utf8<VarInt<u32>, Leb128>")]
     c : String

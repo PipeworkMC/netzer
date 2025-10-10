@@ -3,7 +3,8 @@ use darling::{
     FromMeta,
     util::{
         SpannedValue,
-        Callable
+        Callable,
+        Flag
     }
 };
 
@@ -23,5 +24,7 @@ pub(crate) struct ValueAttrArgs {
     #[darling(default)]
     pub(crate) convert     : Option<SpannedValue<Type>>,
     #[darling(default)]
-    pub(crate) try_convert : Option<SpannedValue<Type>>
+    pub(crate) try_into    : Flag,
+    #[darling(default)]
+    pub(crate) try_from    : Flag
 }
