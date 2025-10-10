@@ -71,26 +71,29 @@ pub(crate) fn derive_netencode_enum(input : &DeriveInput, data : &DataEnum) -> T
                 }
                 let Some((_, discriminant,)) = discriminant
                     else { return quote_spanned!{ variant.span() => compile_error!("ordinal-encoded enum must have a discriminant"); }; };
+
+                let ordinal_type = Type::Path(TypePath {
+                    qself : None,
+                    path  : Path {
+                        leading_colon : Some(Token![::](Span::call_site())),
+                        segments      : Punctuated::from_iter([
+                            PathSegment {
+                                ident     : Ident::new("core", Span::call_site()),
+                                arguments : PathArguments::None
+                            },
+                            PathSegment {
+                                ident     : Ident::new("usize", Span::call_site()),
+                                arguments : PathArguments::None
+                            }
+                        ])
+                    }
+                });
+                let ordinal_type = repr.as_ref().unwrap_or(&ordinal_type);
                 let ordinal_encode = derive_netencode_value(
                     &args.value,
                     repr.as_ref(),
-                    repr.as_ref().unwrap_or(&Type::Path(TypePath {
-                        qself : None,
-                        path  : Path {
-                            leading_colon : Some(Token![::](Span::call_site())),
-                            segments      : Punctuated::from_iter([
-                                PathSegment {
-                                    ident     : Ident::new("core", Span::call_site()),
-                                    arguments : PathArguments::None
-                                },
-                                PathSegment {
-                                    ident     : Ident::new("str", Span::call_site()),
-                                    arguments : PathArguments::None
-                                }
-                            ])
-                        }
-                    })),
-                    quote!{ #discriminant },
+                    ordinal_type,
+                    quote!{ ( #discriminant as #ordinal_type ) },
                     &mut where_clause
                 );
 

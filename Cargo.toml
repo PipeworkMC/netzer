@@ -18,3 +18,7 @@ optional = true
 
 [dependencies.smol]
 version = "2.0"
+
+
+[dev-dependencies.netzer-derive]
+path = "netzer-derive"

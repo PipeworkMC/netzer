@@ -1,4 +1,5 @@
 use netzer::prelude::*;
+use netzer_derive::*;
 use netzer::Result;
 
 
