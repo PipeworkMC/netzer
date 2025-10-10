@@ -32,7 +32,7 @@ pub(crate) fn finalise_encode(ident : &Ident, function_body : TokenStream, mut g
 
     let (_, type_generics, where_clause,) = generics.split_for_impl();
     let mut impl_generics = generics.params.clone();
-    impl_generics.insert(0, GenericParam::Type(TypeParam {
+    impl_generics.push(GenericParam::Type(TypeParam {
         attrs       : Vec::new(),
         ident       : Ident::new("Inherit", Span::call_site()),
         colon_token : Some(Token![:](Span::call_site())),
@@ -84,7 +84,7 @@ pub(crate) fn finalise_decode(ident : &Ident, function_body : TokenStream, mut g
 
     let (_, type_generics, where_clause,) = generics.split_for_impl();
     let mut impl_generics = generics.params.clone();
-    impl_generics.insert(0, GenericParam::Type(TypeParam {
+    impl_generics.push(GenericParam::Type(TypeParam {
         attrs       : Vec::new(),
         ident       : Ident::new("Inherit", Span::call_site()),
         colon_token : Some(Token![:](Span::call_site())),
