@@ -10,13 +10,16 @@ use crate::{
         finalise_encode
     }
 };
-use proc_macro2::TokenStream;
+use proc_macro2::{ Span, TokenStream };
 use syn::{
     DeriveInput, DataEnum,
     Variant, Fields,
     Attribute, Meta, MetaList, MacroDelimiter,
     Path, PathSegment, PathArguments,
-    Type,
+    Type, TypePath, TypeReference, Lifetime,
+    WhereClause,
+    Ident, Token,
+    punctuated::Punctuated,
     spanned::Spanned as _
 };
 use quote::{ quote, quote_spanned };
@@ -31,6 +34,10 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
         Ok(args) => args,
         Err(err) => { return err.write_errors(); }
     } };
+    let mut where_clause = input.generics.where_clause.clone().unwrap_or_else(|| WhereClause {
+        where_token : Token![where](Span::call_site()),
+        predicates  : Punctuated::new()
+    });
 
     let mut match_body = quote!{ };
     match ((args.ordinal.is_present(), args.nominal.is_present(),)) {
@@ -67,7 +74,24 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
                 let ordinal_encode = derive_netencode_value(
                     &args.value,
                     repr.as_ref(),
-                    quote!{ #discriminant }
+                    repr.as_ref().unwrap_or(&Type::Path(TypePath {
+                        qself : None,
+                        path  : Path {
+                            leading_colon : Some(Token![::](Span::call_site())),
+                            segments      : Punctuated::from_iter([
+                                PathSegment {
+                                    ident     : Ident::new("core", Span::call_site()),
+                                    arguments : PathArguments::None
+                                },
+                                PathSegment {
+                                    ident     : Ident::new("str", Span::call_site()),
+                                    arguments : PathArguments::None
+                                }
+                            ])
+                        }
+                    })),
+                    quote!{ #discriminant },
+                    &mut where_clause
                 );
 
                 let field_idents = fields.iter().enumerate().map(|(i, field,)| ident_or(i, field));
@@ -77,7 +101,7 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
                     Fields::Unnamed(_) => quote!{ ( #field_idents ) },
                     Fields::Unit       => quote!{ },
                 } };
-                let encode_fields = derive_netencode_struct_fields(fields);
+                let encode_fields = derive_netencode_struct_fields(fields, &mut where_clause);
                 match_body.extend(quote!{ Self::#ident #destructure => {
                     #ordinal_encode
                     #encode_fields
@@ -97,7 +121,32 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
                 let name_encode = derive_netencode_value(
                     &args.value,
                     None,
-                    quote_spanned!{ name_spanned.span() => #name }
+                    &Type::Reference(TypeReference {
+                        and_token  : Token![&](Span::call_site()),
+                        lifetime   : Some(Lifetime {
+                            apostrophe : Span::call_site(),
+                            ident      : Ident::new("static", Span::call_site())
+                        }),
+                        mutability : None,
+                        elem       : Box::new(Type::Path(TypePath {
+                            qself : None,
+                            path  : Path {
+                                leading_colon : Some(Token![::](Span::call_site())),
+                                segments      : Punctuated::from_iter([
+                                    PathSegment {
+                                        ident     : Ident::new("core", Span::call_site()),
+                                        arguments : PathArguments::None
+                                    },
+                                    PathSegment {
+                                        ident     : Ident::new("str", Span::call_site()),
+                                        arguments : PathArguments::None
+                                    }
+                                ])
+                            }
+                        }))
+                    }),
+                    quote_spanned!{ name_spanned.span() => #name },
+                    &mut where_clause
                 );
 
                 let field_idents = fields.iter().enumerate().map(|(i, field,)| ident_or(i, field));
@@ -107,7 +156,7 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
                     Fields::Unnamed(_) => quote!{ ( #field_idents ) },
                     Fields::Unit       => quote!{ },
                 } };
-                let encode_fields = derive_netencode_struct_fields(fields);
+                let encode_fields = derive_netencode_struct_fields(fields, &mut where_clause);
                 match_body.extend(quote!{ Self::#ident #destructure => {
                     #name_encode
                     #encode_fields
@@ -119,6 +168,8 @@ pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnu
 
     finalise_encode(
         &input.ident,
-        quote!{ match (self) { #match_body } }
+        quote!{ match (self) { #match_body } },
+        input.generics.clone(),
+        where_clause
     )
 }
