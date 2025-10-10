@@ -29,7 +29,7 @@ async fn decode_a<R : netzer::AsyncRead>(mut r : R) -> Result<u64> {
 }
 
 
-#[derive(NetEncode)]
+#[derive(NetEncode, NetDecode)]
 #[netzer(ordinal, format = "BigEndian")]
 #[repr(u8)]
 pub enum GameMode {
@@ -42,7 +42,7 @@ pub enum GameMode {
     Spectator = 3
 }
 
-#[derive(NetEncode)]
+#[derive(NetEncode, NetDecode)]
 #[netzer(nominal, format = "Utf8<u16, BigEndian>", convert = "&str")]
 pub enum DimensionType {
     #[netzer(rename = "minecraft:overworld")]

@@ -29,7 +29,7 @@ pub fn derive_netdecode(item : TokenStream) -> TokenStream {
     let input         = parse_macro_input!(item as DeriveInput);
     (match (&input.data) {
         Data::Struct(data) => structs ::decode::derive_netdecode_struct (&input, data),
-        Data::Enum(data)   => todo!(), //enums   ::decode::derive_netdecode_enum_encode   (&input, data),
+        Data::Enum(data)   => enums   ::decode::derive_netdecode_enum   (&input, data),
         Data::Union(_)     => { return quote!{ compile_error!("NetDecode can not be derived for unions"); }.into(); },
     }).into()
 }

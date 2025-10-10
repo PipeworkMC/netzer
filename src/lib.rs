@@ -4,6 +4,7 @@ use core::{
 };
 use std::{
     borrow::Cow,
+    fmt::{ self, Debug, Display, Formatter },
     io::{ Write, Read }
 };
 use smol::io::{
@@ -105,5 +106,24 @@ pub trait SyncNetDecode<N : NetFormat> : NetDecode<N> + Sized {
 impl<N : NetFormat, T : NetDecode<N>> SyncNetDecode<N> for T {
     fn sync_decode<R : Read>(reader : R) -> Result<Self> {
         smol::block_on(Self::decode(AssertAsync::new(reader)))
+    }
+}
+
+
+#[derive(Debug)]
+pub struct BadEnumOrdinal<T>(pub T);
+impl<T : Debug + Display> StdError for BadEnumOrdinal<T> { }
+impl<T : Display> Display for BadEnumOrdinal<T> {
+    fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "bad enum ordinal \"{}\"", self.0.to_string().escape_debug())
+    }
+}
+
+#[derive(Debug)]
+pub struct BadEnumName(pub String);
+impl StdError for BadEnumName { }
+impl Display for BadEnumName {
+    fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "bad enum name {:?}", self.0)
     }
 }
