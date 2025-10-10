@@ -12,67 +12,43 @@ use syn::{
 use quote::{ quote, quote_spanned };
 
 
-pub(crate) fn derive_netencode_value(
+pub(crate) fn derive_netdecode_value(
     opts         : &ValueAttrArgs,
     repr         : Option<&Type>,
     ty           : &Type,
-    expr         : TokenStream,
     where_clause : &mut WhereClause
 ) -> TokenStream {
 
-    let (value, bounded_ty,) = { match ((&opts.convert, &opts.try_convert,)) {
+    let bounded_ty = { match ((&opts.convert, &opts.try_convert,)) {
         (Some(_), Some(_),) => { return quote!{ compile_error!("value may not have both `convert` and `try_convert`"); }; },
-
-        (Some(spanned), None,) => {
-            let convert = &**spanned;
-            (
-                quote_spanned!{ spanned.span() => ::core::convert::Into::<#convert>::into(#expr.clone()) },
-                convert,
-            )
-        },
-
-        (None, Some(spanned),) => {
-            let try_convert = &**spanned;
-            (
-                quote_spanned!{ spanned.span() => ::core::convert::TryInto::<#try_convert>::try_into(#expr.clone())? },
-                try_convert,
-            )
-        },
-
+        (Some(spanned), None,) => spanned.as_ref(),
+        (None, Some(spanned),) => spanned.as_ref(),
         (None, None,) => {
-            if let Some(repr) = repr { (
-                quote_spanned!{ repr.span() => ::core::convert::Into::<#repr>::into(#expr.clone()) },
-                repr,
-            ) } else { (
-                quote!{ #expr },
-                ty,
-            ) }
+            if let Some(repr) = repr { repr } else { ty }
         }
-
     } };
 
-    let encode;
+    let decode;
     let bound;
-    match ((&opts.format, &opts.encode_with,)) {
-        (Some(_), Some(_),) => { return quote!{ compile_error!("value may not have both `format` and `encode_with`"); }; },
+    match ((&opts.format, &opts.decode_with,)) {
+        (Some(_), Some(_),) => { return quote!{ compile_error!("value may not have both `format` and `decode_with`"); }; },
 
         (None, Some(spanned),) => {
-            let encode_with = &**spanned;
-            encode = quote_spanned!{ spanned.span() =>
-                ::netzer::EncodeWith::<_, _>::encode(
-                    &mut #encode_with,
-                    &#value,
-                    &mut netzer_derive_netencode_writer
-                ).await?;
+            let decode_with = &**spanned;
+            decode = quote_spanned!{ spanned.span() =>
+                ::netzer::DecodeWith::<#bounded_ty, _>::decode(
+                    &mut #decode_with,
+                    &mut netzer_derive_netdecode_reader
+                ).await?
             };
             bound = None;
         },
 
         (Some(spanned), None,) => {
             let format = &**spanned;
-            encode = quote_spanned!{ spanned.span() =>
-                ::netzer::NetEncode::<#format>
-                    ::encode(&#value, &mut netzer_derive_netencode_writer).await?;
+            decode = quote_spanned!{ spanned.span() =>
+                <#bounded_ty as ::netzer::NetDecode::<#format>>
+                    ::decode(&mut netzer_derive_netdecode_reader).await?
             };
             bound = Some(TypeParamBound::Trait(TraitBound {
                 paren_token : None,
@@ -86,7 +62,7 @@ pub(crate) fn derive_netencode_value(
                             arguments : PathArguments::None,
                         },
                         PathSegment {
-                            ident     : Ident::new("NetEncode", Span::call_site()),
+                            ident     : Ident::new("NetDecode", Span::call_site()),
                             arguments : PathArguments::AngleBracketed(AngleBracketedGenericArguments {
                                 colon2_token : Some(Token![::](Span::call_site())),
                                 lt_token     : Token![<](Span::call_site()),
@@ -100,9 +76,9 @@ pub(crate) fn derive_netencode_value(
         },
 
         (None, None,) => {
-            encode = quote!{
-                ::netzer::NetEncode::<Inherit>
-                    ::encode(&#value, &mut netzer_derive_netencode_writer).await?;
+            decode = quote!{
+                <#bounded_ty as ::netzer::NetDecode::<Inherit>>
+                    ::decode(&mut netzer_derive_netdecode_reader).await?
             };
             bound = Some(TypeParamBound::Trait(TraitBound {
                 paren_token : None,
@@ -116,7 +92,7 @@ pub(crate) fn derive_netencode_value(
                             arguments : PathArguments::None,
                         },
                         PathSegment {
-                            ident     : Ident::new("NetEncode", Span::call_site()),
+                            ident     : Ident::new("NetDecode", Span::call_site()),
                             arguments : PathArguments::AngleBracketed(AngleBracketedGenericArguments {
                                 colon2_token : Some(Token![::](Span::call_site())),
                                 lt_token     : Token![<](Span::call_site()),
@@ -140,6 +116,29 @@ pub(crate) fn derive_netencode_value(
 
     }
 
+    let value = { match ((&opts.convert, &opts.try_convert,)) {
+        (Some(_), Some(_),) => { return quote!{ compile_error!("value may not have both `convert` and `try_convert`"); }; },
+
+        (Some(spanned), None,) => {
+            let convert = &**spanned;
+            quote_spanned!{ spanned.span() => ::core::convert::From::<#convert>::from(#decode) }
+        },
+
+        (None, Some(spanned),) => {
+            let try_convert = &**spanned;
+            quote_spanned!{ spanned.span() => ::core::convert::TryFrom::<#try_convert>::try_from(#decode)? }
+        },
+
+        (None, None,) => {
+            if let Some(repr) = repr {
+                quote_spanned!{ repr.span() => ::core::convert::From::<#repr>::from(#decode) }
+            } else {
+                quote!{ #decode }
+            }
+        }
+
+    } };
+
     if let Some(bound) = bound {
         where_clause.predicates.push(WherePredicate::Type(PredicateType {
             lifetimes   : None,
@@ -148,5 +147,5 @@ pub(crate) fn derive_netencode_value(
             bounds      : Punctuated::from_iter([ bound ])
         }));
     }
-    encode
+    value
 }

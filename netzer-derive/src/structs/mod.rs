@@ -3,6 +3,7 @@ use darling::{ FromDeriveInput, FromField };
 
 
 pub(crate) mod encode;
+pub(crate) mod decode;
 
 
 #[derive(Debug, FromDeriveInput)]

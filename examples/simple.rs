@@ -2,7 +2,7 @@ use netzer::prelude::*;
 use netzer::{ NetFormat, Result };
 
 
-#[derive(NetEncode)]
+#[derive(NetEncode, NetDecode)]
 pub struct InheritTest {
     #[netzer(format = "Inherit")]
     s : String

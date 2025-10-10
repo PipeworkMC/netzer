@@ -29,7 +29,7 @@ use darling::{
 };
 
 
-pub(crate) fn derive_netencode_enum_encode(input : &DeriveInput, data : &DataEnum) -> TokenStream {
+pub(crate) fn derive_netencode_enum(input : &DeriveInput, data : &DataEnum) -> TokenStream {
     let args = { match (EnumDeriveAttrArgs::from_derive_input(input)) {
         Ok(args) => args,
         Err(err) => { return err.write_errors(); }

@@ -9,6 +9,7 @@ use darling::{
 
 
 pub(crate) mod encode;
+pub(crate) mod decode;
 
 
 #[derive(Debug, FromDeriveInput)]
