@@ -170,6 +170,8 @@ macro_rules! impl_from_for_varint {
     };
 }
 
+impl_from_for_varint!(bool, u8);
+impl_from_for_varint!(u8, u8);
 impl_from_for_varint!(bool, u16);
 impl_from_for_varint!(u8, u16);
 impl_from_for_varint!(u16, u16);
@@ -188,6 +190,8 @@ impl_from_for_varint!(u16, u128);
 impl_from_for_varint!(u32, u128);
 impl_from_for_varint!(u64, u128);
 impl_from_for_varint!(u128, u128);
+impl_from_for_varint!(bool, i8);
+impl_from_for_varint!(i8, i8);
 impl_from_for_varint!(bool, i16);
 impl_from_for_varint!(u8, i16);
 impl_from_for_varint!(i8, i16);
@@ -240,6 +244,11 @@ macro_rules! impl_tryfrom_for_varint {
         }
     };
 }
+impl_tryfrom_for_varint!(u16, u8);
+impl_tryfrom_for_varint!(u32, u8);
+impl_tryfrom_for_varint!(u64, u8);
+impl_tryfrom_for_varint!(u128, u8);
+impl_tryfrom_for_varint!(usize, u8);
 impl_tryfrom_for_varint!(u32, u16);
 impl_tryfrom_for_varint!(u64, u16);
 impl_tryfrom_for_varint!(u128, u16);
@@ -250,6 +259,14 @@ impl_tryfrom_for_varint!(usize, u32);
 impl_tryfrom_for_varint!(u128, u64);
 impl_tryfrom_for_varint!(usize, u64);
 impl_tryfrom_for_varint!(usize, u128);
+impl_tryfrom_for_varint!(u16, i8);
+impl_tryfrom_for_varint!(u32, i8);
+impl_tryfrom_for_varint!(u64, i8);
+impl_tryfrom_for_varint!(u128, i8);
+impl_tryfrom_for_varint!(i32, i8);
+impl_tryfrom_for_varint!(i64, i8);
+impl_tryfrom_for_varint!(i128, i8);
+impl_tryfrom_for_varint!(isize, i8);
 impl_tryfrom_for_varint!(u16, i16);
 impl_tryfrom_for_varint!(u32, i16);
 impl_tryfrom_for_varint!(u64, i16);
