@@ -26,5 +26,7 @@ pub(crate) struct ValueAttrArgs {
     #[darling(default)]
     pub(crate) try_into    : Flag,
     #[darling(default)]
-    pub(crate) try_from    : Flag
+    pub(crate) try_from    : Flag,
+    #[darling(default)]
+    pub(crate) skip_encode : Flag
 }

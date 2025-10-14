@@ -19,6 +19,7 @@ pub(crate) fn derive_netencode_value(
     expr         : TokenStream,
     where_clause : &mut WhereClause
 ) -> TokenStream {
+    if (opts.skip_encode.is_present()) { return quote!{ }; }
 
     let (into_trait, into_method, into_after) = {
         if (opts.try_into.is_present()) {

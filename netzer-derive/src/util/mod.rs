@@ -62,7 +62,7 @@ pub(crate) fn finalise_encode(ident : &Ident, function_body : TokenStream, mut g
 
     quote!{
         impl<#impl_generics> ::netzer::NetEncode<Inherit> for #ident #type_generics #where_clause {
-            #[allow(clippy::clone_on_copy, clippy::needless_borrow, clippy::unnecessary_cast)]
+            #[allow(unused_variables, clippy::clone_on_copy, clippy::needless_borrow, clippy::unnecessary_cast)]
             async fn encode<Writer : ::netzer::AsyncWrite>(&self, mut netzer_derive_netencode_writer : Writer) -> ::netzer::Result {
                 #function_body
                 Ok(())
