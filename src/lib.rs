@@ -64,7 +64,7 @@ pub use with::*;
 pub trait NetFormat { }
 
 
-pub type Error          = Box<dyn StdError>;
+pub type Error          = Box<dyn StdError + Send + Sync>;
 pub type Result<T = ()> = core::result::Result<T, Error>;
 
 
