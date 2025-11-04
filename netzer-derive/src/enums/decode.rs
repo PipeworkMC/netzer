@@ -40,11 +40,10 @@ pub(crate) fn derive_netdecode_enum(input : &DeriveInput, data : &DataEnum) -> T
     });
 
     let mut function_body = quote!{ };
-    match ((args.ordinal.is_present(), args.nominal.is_present(),)) {
-        (false, false,) => { return quote!{ compile_error!("enum must have `#[netzer(ordinal)]` or `#[netzer(nominal)]`"); }; },
-        (true, true,) => { return quote!{ compile_error!("enum can not be decoded as both `ordinal` and `nominal`"); }; },
+    match ((args.ordinal.is_present(), args.nominal.is_present(), args.untagged.is_present(),)) {
+        (false, false,false,) => { return quote!{ compile_error!("enum must have `#[netzer(ordinal)]` or `#[netzer(nominal)]`"); }; },
 
-        (true, false,) => { // Ordinal
+        (true, false, false,) => { // Ordinal
             let mut repr = None;
             for Attribute { meta, .. } in &input.attrs {
                 if let Meta::List(MetaList { path : Path { leading_colon : None, segments }, delimiter : MacroDelimiter::Paren(_), tokens }) = meta
@@ -124,7 +123,7 @@ pub(crate) fn derive_netdecode_enum(input : &DeriveInput, data : &DataEnum) -> T
             })
         },
 
-        (false, true,) => { // Nominal
+        (false, true, false) => { // Nominal
             let name_decode = derive_netdecode_value(
                 &args.value,
                 None,
@@ -190,8 +189,13 @@ pub(crate) fn derive_netdecode_enum(input : &DeriveInput, data : &DataEnum) -> T
             function_body.extend(quote!{
                 Err(::netzer::BadEnumName(netzer_derive_netdecode_enum_name).into())
             })
-        }
+        },
 
+        (false, false, true,) => { // Untagged
+            return quote!{ compile_error!("derived NetDecode enum can not be decoded `untagged`"); };
+        },
+
+        (_, _, _,) => { return quote!{ compile_error!("enum may only be decoded as `ordinal` or `nominal`"); }; },
     }
 
     finalise_decode(

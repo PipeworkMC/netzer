@@ -22,7 +22,7 @@ pub mod prelude {
         AsyncRead as _,
         impls::{
             numeric::{ BigEndian, LittleEndian },
-            string::Utf8,
+            utf8::Utf8,
             varint::{ VarInt, Leb128 }
         },
         EncodeWith,

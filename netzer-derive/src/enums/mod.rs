@@ -19,6 +19,8 @@ struct EnumDeriveAttrArgs {
     ordinal : Flag,
     #[darling(default)]
     nominal : Flag,
+    #[darling(default)]
+    untagged : Flag,
 
     #[darling(flatten)]
     value : ValueAttrArgs

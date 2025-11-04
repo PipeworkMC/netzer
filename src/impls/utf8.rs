@@ -18,30 +18,6 @@ pub struct Utf8<Len, LenF : NetFormat> {
 impl<Len, LenF : NetFormat> NetFormat for Utf8<Len, LenF> { }
 
 
-impl<Len, LenF : NetFormat> NetDecode<Utf8<Len, LenF>> for String
-where
-    Len   : NetDecode<LenF> + TryInto<usize>,
-    Error : From<<Len as TryInto<usize>>::Error>
-{
-    async fn decode<R : AsyncRead + Unpin>(mut reader : R) -> Result<Self> {
-        let     len = Len::decode(&mut reader).await?
-            .try_into()?;
-        let mut buf = vec![0u8; len];
-        reader.read_exact(&mut buf).await?;
-        Ok(String::from_utf8(buf)?)
-    }
-}
-impl<Len, LenF : NetFormat> NetDecode<Utf8<Len, LenF>> for Cow<'_, str>
-where
-    Len    : NetDecode<LenF> + TryInto<usize>,
-    Error : From<<Len as TryInto<usize>>::Error>
-{
-    async fn decode<R : AsyncRead + Unpin>(reader : R) -> Result<Self> {
-        Ok(Cow::Owned(<String as NetDecode<Utf8<Len, LenF>>>::decode(reader).await?))
-    }
-}
-
-
 impl<Len, LenF : NetFormat> NetEncode<Utf8<Len, LenF>> for str
 where
     Len   : NetEncode<LenF> + TryFrom<usize>,
@@ -61,7 +37,7 @@ where
     Error : From<<Len as TryFrom<usize>>::Error>
 {
     async fn encode<W : AsyncWrite + Unpin>(&self, writer : W) -> Result {
-        <&str as NetEncode<Utf8<Len, LenF>>>::encode(&&**self, writer).await
+        <str as NetEncode<Utf8<Len, LenF>>>::encode(&**self, writer).await
     }
 }
 impl<Len, LenF : NetFormat> NetEncode<Utf8<Len, LenF>> for String
@@ -70,6 +46,30 @@ where
     Error : From<<Len as TryFrom<usize>>::Error>
 {
     async fn encode<W : AsyncWrite + Unpin>(&self, writer : W) -> Result {
-        <&str as NetEncode<Utf8<Len, LenF>>>::encode(&&**self, writer).await
+        <str as NetEncode<Utf8<Len, LenF>>>::encode(&**self, writer).await
+    }
+}
+
+
+impl<Len, LenF : NetFormat> NetDecode<Utf8<Len, LenF>> for String
+where
+    Len   : NetDecode<LenF> + TryInto<usize>,
+    Error : From<<Len as TryInto<usize>>::Error>
+{
+    async fn decode<R : AsyncRead + Unpin>(mut reader : R) -> Result<Self> {
+        let len = Len::decode(&mut reader).await?
+            .try_into()?;
+        let mut buf = vec![0u8; len];
+        reader.read_exact(&mut buf).await?;
+        Ok(String::from_utf8(buf)?)
+    }
+}
+impl<Len, LenF : NetFormat> NetDecode<Utf8<Len, LenF>> for Cow<'_, str>
+where
+    Len   : NetDecode<LenF> + TryInto<usize>,
+    Error : From<<Len as TryInto<usize>>::Error>
+{
+    async fn decode<R : AsyncRead + Unpin>(reader : R) -> Result<Self> {
+        Ok(Cow::Owned(<String as NetDecode<Utf8<Len, LenF>>>::decode(reader).await?))
     }
 }

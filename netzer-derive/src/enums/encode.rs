@@ -40,11 +40,10 @@ pub(crate) fn derive_netencode_enum(input : &DeriveInput, data : &DataEnum) -> T
     });
 
     let mut match_body = quote!{ };
-    match ((args.ordinal.is_present(), args.nominal.is_present(),)) {
-        (false, false,) => { return quote!{ compile_error!("enum must have `#[netzer(ordinal)]` or `#[netzer(nominal)]`"); }; },
-        (true, true,) => { return quote!{ compile_error!("enum can not be encoded as both `ordinal` and `nominal`"); }; },
+    match ((args.ordinal.is_present(), args.nominal.is_present(), args.untagged.is_present(),)) {
+        (false, false, false,) => { return quote!{ compile_error!("enum must have `#[netzer(ordinal)]`, `#[netzer(nominal)]`, or `#[netzer(untagged)]`"); }; },
 
-        (true, false,) => { // Ordinal
+        (true, false, false,) => { // Ordinal
             let mut repr = None;
             for Attribute { meta, .. } in &input.attrs {
                 if let Meta::List(MetaList { path : Path { leading_colon : None, segments }, delimiter : MacroDelimiter::Paren(_), tokens }) = meta
@@ -116,7 +115,7 @@ pub(crate) fn derive_netencode_enum(input : &DeriveInput, data : &DataEnum) -> T
             }
         },
 
-        (false, true,) => { // Nominal
+        (false, true, false,) => { // Nominal
             for variant @ Variant { ident, fields, .. } in &data.variants {
                 let variant_args = { match (EnumVariantAttrArgs::from_variant(variant)) {
                     Ok(variant_args) => variant_args,
@@ -173,8 +172,25 @@ pub(crate) fn derive_netencode_enum(input : &DeriveInput, data : &DataEnum) -> T
                     #encode_fields
                 }, });
             }
-        }
+        },
 
+        (false, false, true,) => { // Untagged
+            for Variant { ident, fields, .. } in &data.variants {
+                let field_idents = fields.iter().enumerate().map(|(i, field,)| ident_or(i, field));
+                let field_idents = quote!{ #( #field_idents , )* };
+                let destructure = { match (fields) {
+                    Fields::Named(_)   => quote!{ { #field_idents } },
+                    Fields::Unnamed(_) => quote!{ ( #field_idents ) },
+                    Fields::Unit       => quote!{ },
+                } };
+                let encode_fields = derive_netencode_struct_fields(fields, &mut where_clause);
+                match_body.extend(quote!{ Self::#ident #destructure => {
+                    #encode_fields
+                }, });
+            }
+        },
+
+        (_, _, _,) => { return quote!{ compile_error!("enum may only be encoded as one of `ordinal`, `nominal`, or `untagged`"); }; },
     }
 
     finalise_encode(
