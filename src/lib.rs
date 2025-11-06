@@ -87,7 +87,7 @@ impl<N : NetFormat, T : NetEncode<N> + ?Sized> NetEncode<N> for &mut T {
     }
 }
 
-pub trait SyncNetEncode<N : NetFormat> : NetEncode<N> {
+pub trait SyncNetEncode<N : NetFormat> {
     fn sync_encode<W : Write>(&self, writer : W) -> Result;
 }
 impl<N : NetFormat, T : NetEncode<N>> SyncNetEncode<N> for T {
@@ -104,7 +104,7 @@ pub trait NetDecode<N : NetFormat> : Sized {
     fn decode<R : AsyncRead>(reader : R) -> impl Future<Output = Result<Self>>;
 }
 
-pub trait SyncNetDecode<N : NetFormat> : NetDecode<N> + Sized {
+pub trait SyncNetDecode<N : NetFormat> : Sized {
     fn sync_decode<R : Read>(reader : R) -> Result<Self>;
 }
 impl<N : NetFormat, T : NetDecode<N>> SyncNetDecode<N> for T {

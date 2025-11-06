@@ -227,6 +227,8 @@ impl_from_for_varint!(bool, isize);
 impl_from_for_varint!(u8, isize);
 impl_from_for_varint!(i8, isize);
 impl_from_for_varint!(i16, isize);
+impl_from_for_varint!(usize, usize);
+impl_from_for_varint!(isize, isize);
 
 macro_rules! impl_tryfrom_for_varint {
     ( $from:ty, $into:ty $(,)? ) => {
@@ -290,10 +292,8 @@ impl_tryfrom_for_varint!(isize, i128);
 impl_tryfrom_for_varint!(u32, usize);
 impl_tryfrom_for_varint!(u64, usize);
 impl_tryfrom_for_varint!(u128, usize);
-impl_tryfrom_for_varint!(usize, usize);
 impl_tryfrom_for_varint!(i32, usize);
 impl_tryfrom_for_varint!(i64, usize);
 impl_tryfrom_for_varint!(i128, usize);
 impl_tryfrom_for_varint!(isize, usize);
 impl_tryfrom_for_varint!(usize, isize);
-impl_tryfrom_for_varint!(isize, isize);
